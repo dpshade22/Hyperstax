@@ -306,4 +306,65 @@ arweave-wallet-connection::part(button):active {
         padding: 20px 40px;
         width: 100%;
     }
+    #homepage h1 {
+        font-size: 6vw;
+    }
+
+    #connectWalletScreen,
+    #usernameScreen,
+    #menuScreen,
+    #leaderboardScreen {
+        width: 90%;
+        max-width: none;
+    }
+}
+
+#homepage {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+    text-align: center;
+}
+
+#homepage h1 {
+    margin-bottom: 30px;
+    font-size: 4vh;
+}
+
+#connectWalletScreen,
+#usernameScreen,
+#menuScreen,
+#leaderboardScreen {
+    width: 80%;
+    max-width: 300px;
+}
+
+#usernameInput {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    font-size: 16px;
+    border: 2px solid #4a4a4a;
+    border-radius: 5px;
+}
+
+#menuScreen button,
+#leaderboardScreen button {
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+#leaderboardList {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.leaderboard-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid #ccc;
 }

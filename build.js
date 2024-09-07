@@ -12,6 +12,7 @@ mkdirSync(join(rootDir, "dist"), { recursive: true });
 const filesToCopy = [
   { from: "src/index.html", to: "dist/index.html" },
   { from: "src/styles.css", to: "dist/styles.css" },
+  { from: "src/wallet-connection.js", to: "dist/wallet-connection.js" },
   { from: "ArSpell_answers.txt", to: "dist/ArSpell_answers.txt" },
   { from: "ArSpell_guesses.txt", to: "dist/ArSpell_guesses.txt" },
 ];
@@ -31,7 +32,10 @@ filesToCopy.forEach((file) => {
 
 try {
   let result = await build({
-    entrypoints: [join(rootDir, "src/index.js")],
+    entrypoints: [
+      join(rootDir, "src/index.js"),
+      join(rootDir, "src/wallet-connection.js"),
+    ],
     outdir: join(rootDir, "dist/"),
     minify: true,
     target: "browser",

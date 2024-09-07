@@ -9,7 +9,34 @@
     <body>
         <div id="homepage">
             <h1>WordStack</h1>
-            <button id="startGame" class="pixelated-button">Start Game</button>
+            <div id="connectWalletScreen">
+                <arweave-wallet-connection></arweave-wallet-connection>
+            </div>
+            <div id="usernameScreen" style="display: none">
+                <input
+                    type="text"
+                    id="usernameInput"
+                    placeholder="Enter your username"
+                />
+                <button id="submitUsername" class="pixelated-button">
+                    Submit
+                </button>
+            </div>
+            <div id="menuScreen" style="display: none">
+                <button id="letsPlay" class="pixelated-button">
+                    Let's Play
+                </button>
+                <button id="showLeaderboard" class="pixelated-button">
+                    Leaderboard
+                </button>
+            </div>
+            <div id="leaderboardScreen" style="display: none">
+                <h2>Leaderboard</h2>
+                <div id="leaderboardList"></div>
+                <button id="backToMenu" class="pixelated-button">
+                    Back to Menu
+                </button>
+            </div>
         </div>
         <div id="gameContainer" style="display: none">
             <h1>WordStack</h1>
@@ -22,6 +49,7 @@
                 <button id="rightBtn">▶</button>
             </div>
         </div>
+        <script src="wallet-connection.js" type="module"></script>
         <script src="index.js"></script>
     </body>
 </html>

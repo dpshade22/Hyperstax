@@ -1,21 +1,48 @@
+import {
+  addWalletAddress,
+  addUsername,
+  updateMaxScore,
+  getLeaderboard,
+} from "./arweave-helpers.js";
+
 document.addEventListener("DOMContentLoaded", () => {
-  const startGameBtn = document.getElementById("startGame");
   const homepage = document.getElementById("homepage");
   const gameContainer = document.getElementById("gameContainer");
+  const connectWalletScreen = document.getElementById("connectWalletScreen");
+  const usernameScreen = document.getElementById("usernameScreen");
+  const menuScreen = document.getElementById("menuScreen");
+  const leaderboardScreen = document.getElementById("leaderboardScreen");
+  const usernameInput = document.getElementById("usernameInput");
+  const submitUsernameBtn = document.getElementById("submitUsername");
+  const letsPlayBtn = document.getElementById("letsPlay");
+  const showLeaderboardBtn = document.getElementById("showLeaderboard");
+  const backToMenuBtn = document.getElementById("backToMenu");
+  const leaderboardList = document.getElementById("leaderboardList");
+  const walletConnection = document.querySelector("arweave-wallet-connection");
   const gameBoard = document.getElementById("game-board");
   const scoreDisplay = document.getElementById("score");
   const leftBtn = document.getElementById("leftBtn");
   const downBtn = document.getElementById("downBtn");
   const rightBtn = document.getElementById("rightBtn");
 
+  let username = "";
+
+  // Constants
   const BOARD_WIDTH = 7;
   const BOARD_HEIGHT = 10;
-  const LETTERS = "AAAEEEIOOPRSWLLMMCUUU$";
+  const LETTERS = "AAAEEIOOPRSWLLMMCUU$";
   const INITIAL_GAME_SPEED = 700;
   const SPEED_INCREASE_FACTOR = 0.9;
-  const LETTERS_PER_SPEED_INCREASE = 4;
+  const LETTERS_PER_SPEED_INCREASE = 3;
+
+  // Game state variables
   let currentGameSpeed = INITIAL_GAME_SPEED;
   let lettersPlaced = 0;
+  let board = [];
+  let score = 0;
+  let currentLetter = "";
+  let currentPosition = { x: 0, y: 0 };
+  let gameLoop;
 
   const WORDS = [
     "ARWEAVE",
@@ -41,30 +68,129 @@ document.addEventListener("DOMContentLoaded", () => {
     [-1, -1],
   ];
 
-  let board = [];
-  let score = 0;
-  let currentLetter = "";
-  let currentPosition = { x: 0, y: 0 };
-  let gameLoop;
+  const leaderboardData = [
+    { username: "Player1", score: 1000 },
+    { username: "Player2", score: 900 },
+    { username: "Player3", score: 800 },
+    { username: "Player4", score: 700 },
+    { username: "Player5", score: 600 },
+  ];
 
-  startGameBtn.addEventListener("click", startGame);
+  walletConnection.addEventListener("walletConnected", async (event) => {
+    console.log("Wallet connected:", event.detail);
+    connectWalletScreen.style.display = "none";
+
+    try {
+      // Add wallet address to Arweave
+      await addWalletAddress(walletConnection, event.detail);
+      console.log("Wallet address added to Arweave");
+
+      // Perform dry run to get user data
+      const dryRunResult = await walletConnection.dryRunArweave([
+        { name: "Action", value: "GetUserData" },
+        { name: "Wallet-Address", value: walletConnection.walletAddress },
+      ]);
+
+      if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
+        const userData = JSON.parse(dryRunResult.Messages[0].Data);
+        if (userData.username) {
+          username = userData.username;
+          console.log("Existing username found:", username);
+          menuScreen.style.display = "block";
+        } else {
+          console.log("No existing username found");
+          usernameScreen.style.display = "block";
+        }
+      } else {
+        console.log("No user data found");
+        usernameScreen.style.display = "block";
+      }
+    } catch (error) {
+      console.error("Error during wallet connection process:", error);
+      alert(
+        "An error occurred while setting up your account. Please try again.",
+      );
+      usernameScreen.style.display = "block";
+    }
+  });
+
+  submitUsernameBtn.addEventListener("click", async () => {
+    if (!username) {
+      username = usernameInput.value.trim();
+    }
+
+    if (username) {
+      try {
+        await addUsername(
+          walletConnection,
+          walletConnection.walletAddress,
+          username,
+        );
+        console.log("Username added to Arweave");
+        usernameScreen.style.display = "none";
+        menuScreen.style.display = "block";
+      } catch (error) {
+        console.error("Error adding username:", error);
+        alert("Failed to set username. Please try again.");
+      }
+    } else {
+      alert("Please enter a valid username.");
+    }
+  });
+
+  letsPlayBtn.addEventListener("click", startGame);
+  showLeaderboardBtn.addEventListener("click", showLeaderboard);
+  backToMenuBtn.addEventListener("click", () => {
+    leaderboardScreen.style.display = "none";
+    menuScreen.style.display = "block";
+  });
+
   leftBtn.addEventListener("click", () => moveLetter("left"));
   downBtn.addEventListener("click", () => moveLetter("down"));
   rightBtn.addEventListener("click", () => moveLetter("right"));
 
   function startGame() {
-    homepage.style.display = "none";
-    gameContainer.style.display = "flex";
-    initializeBoard();
-    resizeBoard();
-    drawBoard();
-    spawnLetter();
-    displayWordList();
-    currentGameSpeed = INITIAL_GAME_SPEED;
-    lettersPlaced = 0;
-    gameLoop = setInterval(updateGame, currentGameSpeed);
-    document.addEventListener("keydown", handleKeyPress);
-    window.addEventListener("resize", resizeBoard);
+    if (walletConnection.walletAddress && username) {
+      homepage.style.display = "none";
+      gameContainer.style.display = "flex";
+      initializeBoard();
+      resizeBoard();
+      drawBoard();
+      spawnLetter();
+      displayWordList();
+      currentGameSpeed = INITIAL_GAME_SPEED;
+      lettersPlaced = 0;
+      gameLoop = setInterval(updateGame, currentGameSpeed);
+      document.addEventListener("keydown", handleKeyPress);
+      window.addEventListener("resize", resizeBoard);
+    } else {
+      alert(
+        "Please connect your wallet and ensure you have a username before playing!",
+      );
+    }
+  }
+
+  async function showLeaderboard() {
+    try {
+      const leaderboardData = await getLeaderboard(walletConnection, 10); // Get top 10
+      console.log("Leaderboard data:", leaderboardData);
+
+      // You can also stringify the data for a more readable console output
+      console.log(
+        "Leaderboard data (stringified):",
+        JSON.stringify(leaderboardData, null, 2),
+      );
+
+      // For now, we'll just show an alert that the leaderboard was fetched
+      alert("Leaderboard data fetched. Check the console for details.");
+
+      // TODO: Implement the UI for displaying the leaderboard
+      leaderboardScreen.style.display = "block";
+      menuScreen.style.display = "none";
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
+      alert("Failed to fetch leaderboard. Please try again.");
+    }
   }
 
   function displayWordList() {
@@ -125,7 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
         cell.textContent = board[y][x].letter || " ";
       }
     }
-    if (currentLetter) {
+    if (currentLetter && currentPosition.y >= 0) {
       const currentCell =
         gameBoard.children[currentPosition.y * BOARD_WIDTH + currentPosition.x];
       currentCell.textContent = currentLetter;
@@ -134,8 +260,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function spawnLetter() {
     currentLetter = LETTERS[Math.floor(Math.random() * LETTERS.length)];
-    currentPosition = { x: Math.floor(BOARD_WIDTH / 2), y: 0 };
-    if (!canMoveTo(currentPosition.x, currentPosition.y)) {
+    currentPosition = { x: Math.floor(BOARD_WIDTH / 2), y: -1 }; // Start above the visible board
+    if (!canMoveTo(currentPosition.x, currentPosition.y + 1)) {
       endGame();
     }
   }
@@ -144,9 +270,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (canMoveTo(currentPosition.x, currentPosition.y + 1)) {
       currentPosition.y++;
     } else {
-      placeLetter();
-      if (!isProcessingWords) {
-        checkWords();
+      if (currentPosition.y >= 0) {
+        // Only place the letter if it's within the visible board
+        placeLetter();
+        if (!isProcessingWords) {
+          checkWords();
+        }
       }
       spawnLetter();
     }
@@ -388,12 +517,52 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function endGame() {
+  async function endGame() {
     clearInterval(gameLoop);
-    alert(`Game Over! Your score is ${score}`);
     document.removeEventListener("keydown", handleKeyPress);
     window.removeEventListener("resize", resizeBoard);
+
+    try {
+      // Perform dry run to check if the score is a new high score
+      const dryRunResult = await walletConnection.dryRunArweave([
+        { name: "Action", value: "UpdateMaxScore" },
+        { name: "Wallet-Address", value: walletConnection.walletAddress },
+        { name: "Score", value: score.toString() },
+      ]);
+
+      let isNewHighScore = false;
+      if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
+        const result = JSON.parse(dryRunResult.Messages[0].Data);
+        isNewHighScore = result.newHighScore === true;
+      }
+
+      // Update the max score in Arweave
+      await updateMaxScore(
+        walletConnection,
+        walletConnection.walletAddress,
+        score,
+      );
+
+      // Show game over message
+      if (isNewHighScore) {
+        alert(`Game Over! Your score is ${score}. New High Score!`);
+      } else {
+        alert(`Game Over! Your score is ${score}.`);
+      }
+
+      console.log("Max score updated in Arweave");
+    } catch (error) {
+      console.error("Error updating max score:", error);
+      alert(`Game Over! Your score is ${score}. Failed to update high score.`);
+    }
+
     currentGameSpeed = INITIAL_GAME_SPEED;
     lettersPlaced = 0;
+
+    // Reset the game state or navigate back to the menu
+    // For example:
+    // resetGame();
+    // or
+    // showMenuScreen();
   }
 });

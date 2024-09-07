@@ -1,9 +1,15 @@
-import { createDataItemSigner, message, result } from "@permaweb/aoconnect";
+import {
+  createDataItemSigner,
+  dryrun,
+  message,
+  result,
+} from "@permaweb/aoconnect";
 import { arGql } from "ar-gql";
 import { ArConnect } from "arweavekit/auth";
 import * as othent from "@othent/kms";
 
 const argql = arGql();
+const PROCESS_ID = "ZtS3h94Orj7jT56m3uP-n7iC5_56Z9LL24Vx21LW03k";
 
 class ArweaveWalletConnection extends HTMLElement {
   constructor() {
@@ -12,6 +18,8 @@ class ArweaveWalletConnection extends HTMLElement {
     this.signer = null;
     this.authMethod = null;
     this.attachShadow({ mode: "open" });
+
+    this.sendMessageToArweave = this.sendMessageToArweave.bind(this);
   }
 
   connectedCallback() {
@@ -25,24 +33,8 @@ class ArweaveWalletConnection extends HTMLElement {
 
   getTemplate() {
     return `
-      <style>
-        button {
-          padding: 10px 20px;
-          background-color: #4a90e2;
-          color: white;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-          transition: background-color 0.3s;
-          width: 100%;
-          margin-top: 10px;
-        }
-        button:hover {
-          background-color: #357ab8;
-        }
-      </style>
-      <button id="connectWallet">Connect Wallet</button>
-    `;
+        <button id="connectWallet" part="button">Connect Wallet</button>
+      `;
   }
 
   addEventListeners() {
@@ -64,9 +56,21 @@ class ArweaveWalletConnection extends HTMLElement {
       (await this.tryArConnect()) || (await this.tryOthent());
       if (this.walletAddress) {
         console.log(`Wallet connected successfully: ${this.walletAddress}`);
-        this.signer = createDataItemSigner(
-          this.authMethod === "Othent" ? othent : window.arweaveWallet,
-        );
+
+        if (this.authMethod === "Othent") {
+          this.signer = createDataItemSigner(othent);
+        } else if (this.authMethod === "ArConnect") {
+          this.signer = createDataItemSigner(window.arweaveWallet);
+        } else {
+          throw new Error("Unknown auth method");
+        }
+
+        if (!this.signer) {
+          throw new Error("Failed to create signer");
+        }
+
+        console.log("Signer created:", this.signer);
+
         this.dispatchEvent(
           new CustomEvent("walletConnected", { detail: this.walletAddress }),
         );
@@ -109,16 +113,31 @@ class ArweaveWalletConnection extends HTMLElement {
   }
 
   async sendMessageToArweave(tags) {
+    if (!this.signer) {
+      throw new Error(
+        "Signer is not initialized. Please connect wallet first.",
+      );
+    }
+
     try {
+      console.log("PROCESS_ID:", PROCESS_ID);
+      console.log("Tags:", tags);
+      console.log("Signer:", this.signer);
+
       const messageId = await message({
         process: PROCESS_ID,
         tags,
         signer: this.signer,
       });
+
+      console.log("Message ID:", messageId);
       let { Messages, Error } = await result({
         process: PROCESS_ID,
         message: messageId,
       });
+
+      console.log("Messages:", Messages);
+
       if (Error) console.error(Error);
       else
         console.log(
@@ -130,8 +149,38 @@ class ArweaveWalletConnection extends HTMLElement {
       throw error;
     }
   }
+
+  async dryRunArweave(tags, data = "") {
+    if (!this.signer) {
+      throw new Error(
+        "Signer is not initialized. Please connect wallet first.",
+      );
+    }
+
+    try {
+      const { Messages, Error } = await dryrun({
+        process: PROCESS_ID,
+        tags: tags,
+        data: data,
+        signer: this.signer,
+      });
+
+      if (Error) {
+        console.error("Error in dryRunArweave:", Error);
+        throw new Error(Error);
+      }
+
+      return { Messages, Error };
+    } catch (error) {
+      console.error("Error in dryRunArweave:", error);
+      throw error;
+    }
+  }
 }
 
-customElements.define("arweave-wallet-connection", ArweaveWalletConnection);
+// Check if the custom element has already been defined
+if (!customElements.get("arweave-wallet-connection")) {
+  customElements.define("arweave-wallet-connection", ArweaveWalletConnection);
+}
 
 export { ArweaveWalletConnection, argql };
