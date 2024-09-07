@@ -115,9 +115,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
         const userData = JSON.parse(dryRunResult.Messages[0].Data);
         if (userData.username) {
-          username = userData.username;
-          console.log("Existing username found:", username);
+          currentUsername = userData.username;
+          console.log("Existing username found:", currentUsername);
           menuScreen.style.display = "block";
+          updateUserInfo();
         } else {
           console.log("No existing username found");
           usernameScreen.style.display = "block";
@@ -138,22 +139,21 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   submitUsernameBtn.addEventListener("click", async () => {
-    if (!username) {
-      username = usernameInput.value.trim();
-    }
+    currentUsername = usernameInput.value.trim();
 
-    if (username) {
+    if (currentUsername) {
       showLoading();
 
       try {
         await addUsername(
           walletConnection,
           walletConnection.walletAddress,
-          username,
+          currentUsername,
         );
         console.log("Username added to Arweave");
         usernameScreen.style.display = "none";
         menuScreen.style.display = "block";
+        updateUserInfo(); // Call this function here
       } catch (error) {
         console.error("Error adding username:", error);
         alert("Failed to set username. Please try again.");
@@ -197,6 +197,17 @@ document.addEventListener("DOMContentLoaded", () => {
       alert(
         "Please connect your wallet and ensure you have a username before playing!",
       );
+    }
+  }
+
+  function updateUserInfo() {
+    const userInfoElement = document.getElementById("userInfo");
+    if (walletConnection.walletAddress && currentUsername) {
+      const shortWallet = walletConnection.walletAddress.slice(-4);
+      userInfoElement.textContent = `${currentUsername}#${shortWallet}`;
+      userInfoElement.style.display = "block";
+    } else {
+      userInfoElement.style.display = "none";
     }
   }
 
@@ -569,6 +580,7 @@ document.addEventListener("DOMContentLoaded", () => {
     gameContainer.style.display = "none";
     homepage.style.display = "flex";
     menuScreen.style.display = "block";
+    updateUserInfo();
   }
 
   async function endGame() {
@@ -662,5 +674,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Reset word list highlight
     resetWordListHighlight();
+
+    updateUserInfo();
   }
 });
