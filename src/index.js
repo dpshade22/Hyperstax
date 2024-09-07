@@ -106,6 +106,9 @@ document.addEventListener("DOMContentLoaded", () => {
       await addWalletAddress(walletConnection, event.detail);
       console.log("Wallet address added to Arweave");
 
+      // Timeout for 1.5 seconds
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
       // Perform dry run to get user data
       const dryRunResult = await walletConnection.dryRunArweave([
         { name: "Action", value: "GetUserData" },
@@ -180,7 +183,8 @@ document.addEventListener("DOMContentLoaded", () => {
   playAgainBtn.addEventListener("click", resetGame);
 
   function startGame() {
-    if (walletConnection.walletAddress && username) {
+    console.log(currentUsername);
+    if (walletConnection.walletAddress && currentUsername) {
       homepage.style.display = "none";
       gameContainer.style.display = "flex";
       initializeBoard();
