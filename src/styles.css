@@ -123,52 +123,6 @@ body {
     right: -2px;
 }
 
-/* Pixelated Flash animation */
-.cell.flash {
-    animation: flashAnimation 0.3s steps(3, end) 2;
-}
-
-@keyframes flashAnimation {
-    0%,
-    100% {
-        background-color: white;
-        color: #000;
-    }
-    33% {
-        background-color: #ffff00;
-        color: #000;
-    }
-    66% {
-        background-color: #32cd32;
-        color: #000;
-    }
-}
-
-/* Special Flash animation for words of 4 or more letters */
-.cell.flash-special {
-    animation: flashSpecialAnimation 0.3s steps(4, end) 2;
-}
-
-@keyframes flashSpecialAnimation {
-    0%,
-    100% {
-        background-color: white;
-        color: #000;
-    }
-    25% {
-        background-color: #ffff00;
-        color: #000;
-    }
-    50% {
-        background-color: #32cd32;
-        color: #000;
-    }
-    75% {
-        background-color: #8a2be2; /* Purple */
-        color: #fff;
-    }
-}
-
 /* Controls */
 #controls {
     display: flex;
@@ -184,16 +138,49 @@ body {
     color: white;
     border: none;
     cursor: pointer;
+    width: 60px; /* Add this line */
+    height: 60px; /* Add this line */
+    display: flex; /* Add this line */
+    justify-content: center; /* Add this line */
+    align-items: center; /* Add this line */
 }
 
 /* Word List */
 #word-list {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     gap: 10px;
     margin-bottom: 10px;
     font-size: 1.2em;
+}
+
+#score {
+    margin-bottom: 1rem;
+}
+
+#jackpot-words,
+#regular-words {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Update the jackpot word styles */
+.word-item.jackpot-word {
+    font-weight: bold;
+    border: 2px solid #ffa500; /* Orange border for jackpot words */
+    background-color: #fff5e6; /* Light orange background */
+}
+
+/* Add a divider between jackpot and regular words */
+#jackpot-words::after {
+    content: "";
+    width: 100%;
+    height: 2px;
+    background-color: #ccc;
+    margin: 5px 0;
 }
 
 .word-item {
@@ -201,6 +188,11 @@ body {
     padding: 5px 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
+}
+
+.word-item.jackpot-word {
+    font-weight: bold;
+    border: 2px solid #ffa500; /* Orange border for jackpot words */
 }
 
 /* Mobile Styles */
@@ -239,5 +231,79 @@ body {
         font-size: 5vw;
         padding: 20px 40px;
         width: 90%;
+    }
+}
+
+/* Wallet Connection Button */
+arweave-wallet-connection {
+    display: block;
+    margin-bottom: 20px;
+}
+
+arweave-wallet-connection::part(button) {
+    font-family: "Courier New", monospace;
+    font-size: 2vh;
+    font-weight: bold;
+    padding: 15px 30px;
+    background-color: #4a4a4a;
+    color: white;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    image-rendering: pixelated;
+    border-radius: 15px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+arweave-wallet-connection::part(button)::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+        linear-gradient(45deg, transparent 15px, #4a4a4a 0) bottom left,
+        linear-gradient(-45deg, transparent 15px, #4a4a4a 0) bottom right,
+        linear-gradient(135deg, transparent 15px, #4a4a4a 0) top left,
+        linear-gradient(-135deg, transparent 15px, #4a4a4a 0) top right;
+    background-size: 51% 51%;
+    background-repeat: no-repeat;
+    z-index: -1;
+}
+
+arweave-wallet-connection::part(button)::after {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background:
+        linear-gradient(45deg, transparent 15px, white 0) bottom left,
+        linear-gradient(-45deg, transparent 15px, white 0) bottom right,
+        linear-gradient(135deg, transparent 15px, white 0) top left,
+        linear-gradient(-135deg, transparent 15px, white 0) top right;
+    background-size: 51% 51%;
+    background-repeat: no-repeat;
+    z-index: -2;
+}
+
+arweave-wallet-connection::part(button):hover {
+    background-color: #666;
+}
+
+arweave-wallet-connection::part(button):active {
+    background-color: #333;
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+    arweave-wallet-connection::part(button) {
+        font-size: 5vw;
+        padding: 20px 40px;
+        width: 100%;
     }
 }
