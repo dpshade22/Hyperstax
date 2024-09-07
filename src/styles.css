@@ -7,6 +7,16 @@ body {
     height: 100vh;
     margin: 0;
     background-color: #f0f0f0;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+* {
+    touch-action: manipulation;
 }
 
 /* Pixelated Button */
@@ -25,26 +35,28 @@ body {
     border-radius: 15px;
 }
 
-.pixelated-button::before {
+.pixelated-button::before,
+.pixelated-button::after {
     content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background:
-        linear-gradient(45deg, transparent 15px, #4a4a4a 0) bottom left,
-        linear-gradient(-45deg, transparent 15px, #4a4a4a 0) bottom right,
-        linear-gradient(135deg, transparent 15px, #4a4a4a 0) top left,
-        linear-gradient(-135deg, transparent 15px, #4a4a4a 0) top right;
     background-size: 51% 51%;
     background-repeat: no-repeat;
     z-index: -1;
 }
 
+.pixelated-button::before {
+    background:
+        linear-gradient(45deg, transparent 15px, #4a4a4a 0) bottom left,
+        linear-gradient(-45deg, transparent 15px, #4a4a4a 0) bottom right,
+        linear-gradient(135deg, transparent 15px, #4a4a4a 0) top left,
+        linear-gradient(-135deg, transparent 15px, #4a4a4a 0) top right;
+}
+
 .pixelated-button::after {
-    content: "";
-    position: absolute;
     top: -2px;
     left: -2px;
     right: -2px;
@@ -54,8 +66,6 @@ body {
         linear-gradient(-45deg, transparent 15px, white 0) bottom right,
         linear-gradient(135deg, transparent 15px, white 0) top left,
         linear-gradient(-135deg, transparent 15px, white 0) top right;
-    background-size: 51% 51%;
-    background-repeat: no-repeat;
     z-index: -2;
 }
 
@@ -102,7 +112,6 @@ body {
     overflow: hidden;
 }
 
-/* Moderately enlarged pixelated corners */
 .cell::before,
 .cell::after {
     content: "";
@@ -138,11 +147,11 @@ body {
     color: white;
     border: none;
     cursor: pointer;
-    width: 60px; /* Add this line */
-    height: 60px; /* Add this line */
-    display: flex; /* Add this line */
-    justify-content: center; /* Add this line */
-    align-items: center; /* Add this line */
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Word List */
@@ -167,14 +176,6 @@ body {
     gap: 10px;
 }
 
-/* Update the jackpot word styles */
-.word-item.jackpot-word {
-    font-weight: bold;
-    border: 2px solid #ffa500; /* Orange border for jackpot words */
-    background-color: #fff5e6; /* Light orange background */
-}
-
-/* Add a divider between jackpot and regular words */
 #jackpot-words::after {
     content: "";
     width: 100%;
@@ -192,7 +193,266 @@ body {
 
 .word-item.jackpot-word {
     font-weight: bold;
-    border: 2px solid #ffa500; /* Orange border for jackpot words */
+    border: 2px solid #ffa500;
+    background-color: #fff5e6;
+}
+
+/* Wallet Connection Button */
+arweave-wallet-connection {
+    display: block;
+    margin-bottom: 20px;
+}
+
+arweave-wallet-connection::part(button) {
+    font-family: "Courier New", monospace;
+    font-size: 2vh;
+    font-weight: bold;
+    padding: 15px 30px;
+    background-color: #4a4a4a;
+    color: white;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    image-rendering: pixelated;
+    border-radius: 15px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+arweave-wallet-connection::part(button)::before,
+arweave-wallet-connection::part(button)::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: 51% 51%;
+    background-repeat: no-repeat;
+}
+
+arweave-wallet-connection::part(button)::before {
+    background:
+        linear-gradient(45deg, transparent 15px, #4a4a4a 0) bottom left,
+        linear-gradient(-45deg, transparent 15px, #4a4a4a 0) bottom right,
+        linear-gradient(135deg, transparent 15px, #4a4a4a 0) top left,
+        linear-gradient(-135deg, transparent 15px, #4a4a4a 0) top right;
+    z-index: -1;
+}
+
+arweave-wallet-connection::part(button)::after {
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background:
+        linear-gradient(45deg, transparent 15px, white 0) bottom left,
+        linear-gradient(-45deg, transparent 15px, white 0) bottom right,
+        linear-gradient(135deg, transparent 15px, white 0) top left,
+        linear-gradient(-135deg, transparent 15px, white 0) top right;
+    z-index: -2;
+}
+
+arweave-wallet-connection::part(button):hover {
+    background-color: #666;
+}
+
+arweave-wallet-connection::part(button):active {
+    background-color: #333;
+}
+
+/* Homepage */
+#homepage {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+    text-align: center;
+}
+
+#homepage h1 {
+    margin-bottom: 30px;
+    font-size: 4vh;
+}
+
+.game-title {
+    margin-bottom: 30px;
+    font-size: 4vh;
+    text-align: center;
+}
+
+#connectWalletScreen,
+#usernameScreen,
+#menuScreen,
+#leaderboardScreen {
+    width: 80%;
+    max-width: 300px;
+}
+
+#usernameInput {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    font-size: 16px;
+    border: 2px solid #4a4a4a;
+    border-radius: 5px;
+}
+
+#menuScreen button,
+#leaderboardScreen button {
+    margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+/* Leaderboard */
+#leaderboardScreen {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+    max-width: none;
+    padding-top: 20px; /* Add some padding at the top */
+}
+
+#leaderboardList {
+    flex-grow: 1;
+    overflow-y: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0 20px;
+}
+
+.leaderboard-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-family: "Courier New", monospace;
+    font-size: 18px;
+}
+
+.leaderboard-item .place {
+    font-weight: bold;
+    margin-right: 5px; /* Reduced margin */
+    min-width: 30px;
+}
+
+.leaderboard-item .username {
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 10px;
+    text-align: left; /* Align text to the left */
+}
+
+.leaderboard-item .score {
+    text-align: right;
+    min-width: 60px; /* Add a minimum width to ensure consistent spacing */
+}
+
+#backToMenu {
+    margin: 20px auto;
+    width: 80%;
+    max-width: 300px;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+    background-color: #f0f0f0;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    text-align: center;
+    border-radius: 10px;
+    position: relative;
+}
+
+#playAgainBtn,
+#backToMenuFromModal {
+    margin-top: 20px;
+    width: 100%;
+}
+
+#backToMenuFromModal {
+    margin-top: 10px;
+}
+
+/* Loading Indicator */
+.loading-indicator {
+    display: none;
+    position: fixed;
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+}
+
+.loading-indicator .pixel {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background-color: #4a4a4a;
+    margin: 0 5px;
+    animation: pixelBounce 1s infinite steps(2);
+}
+
+.loading-indicator .pixel:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.loading-indicator .pixel:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes pixelBounce {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+#modalLoadingIndicator {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(240, 240, 240, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content > *:not(#modalLoadingIndicator) {
+    transition: opacity 0.3s ease;
+}
+
+.modal-content.loading > *:not(#modalLoadingIndicator) {
+    opacity: 0.3;
 }
 
 /* Mobile Styles */
@@ -232,82 +492,16 @@ body {
         padding: 20px 40px;
         width: 90%;
     }
-}
 
-/* Wallet Connection Button */
-arweave-wallet-connection {
-    display: block;
-    margin-bottom: 20px;
-}
-
-arweave-wallet-connection::part(button) {
-    font-family: "Courier New", monospace;
-    font-size: 2vh;
-    font-weight: bold;
-    padding: 15px 30px;
-    background-color: #4a4a4a;
-    color: white;
-    border: none;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    image-rendering: pixelated;
-    border-radius: 15px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-arweave-wallet-connection::part(button)::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background:
-        linear-gradient(45deg, transparent 15px, #4a4a4a 0) bottom left,
-        linear-gradient(-45deg, transparent 15px, #4a4a4a 0) bottom right,
-        linear-gradient(135deg, transparent 15px, #4a4a4a 0) top left,
-        linear-gradient(-135deg, transparent 15px, #4a4a4a 0) top right;
-    background-size: 51% 51%;
-    background-repeat: no-repeat;
-    z-index: -1;
-}
-
-arweave-wallet-connection::part(button)::after {
-    content: "";
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    background:
-        linear-gradient(45deg, transparent 15px, white 0) bottom left,
-        linear-gradient(-45deg, transparent 15px, white 0) bottom right,
-        linear-gradient(135deg, transparent 15px, white 0) top left,
-        linear-gradient(-135deg, transparent 15px, white 0) top right;
-    background-size: 51% 51%;
-    background-repeat: no-repeat;
-    z-index: -2;
-}
-
-arweave-wallet-connection::part(button):hover {
-    background-color: #666;
-}
-
-arweave-wallet-connection::part(button):active {
-    background-color: #333;
-}
-
-/* Mobile Styles */
-@media (max-width: 768px) {
     arweave-wallet-connection::part(button) {
         font-size: 5vw;
         padding: 20px 40px;
         width: 100%;
     }
+
     #homepage h1 {
-        font-size: 6vw;
+        padding: 1rem;
+        font-size: 8vw;
     }
 
     #connectWalletScreen,
@@ -317,54 +511,4 @@ arweave-wallet-connection::part(button):active {
         width: 90%;
         max-width: none;
     }
-}
-
-#homepage {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    width: 100%;
-    text-align: center;
-}
-
-#homepage h1 {
-    margin-bottom: 30px;
-    font-size: 4vh;
-}
-
-#connectWalletScreen,
-#usernameScreen,
-#menuScreen,
-#leaderboardScreen {
-    width: 80%;
-    max-width: 300px;
-}
-
-#usernameInput {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
-    font-size: 16px;
-    border: 2px solid #4a4a4a;
-    border-radius: 5px;
-}
-
-#menuScreen button,
-#leaderboardScreen button {
-    margin-bottom: 10px;
-    width: 100%;
-}
-
-#leaderboardList {
-    margin-bottom: 20px;
-    text-align: left;
-}
-
-.leaderboard-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 5px 0;
-    border-bottom: 1px solid #ccc;
 }

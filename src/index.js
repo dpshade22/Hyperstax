@@ -2,6 +2,7 @@ import {
   addWalletAddress,
   addUsername,
   updateMaxScore,
+  dryRunGetUserData,
   getLeaderboard,
 } from "./arweave-helpers.js";
 
@@ -24,13 +25,39 @@ document.addEventListener("DOMContentLoaded", () => {
   const leftBtn = document.getElementById("leftBtn");
   const downBtn = document.getElementById("downBtn");
   const rightBtn = document.getElementById("rightBtn");
+  const backToMenuFromModalBtn = document.getElementById("backToMenuFromModal");
+  const gameOverModal = document.getElementById("gameOverModal");
+  const finalScoreElement = document.getElementById("finalScore");
+  const highScoreMessageElement = document.getElementById("highScoreMessage");
+  const playAgainBtn = document.getElementById("playAgainBtn");
+  const loadingIndicator = document.getElementById("loadingIndicator");
+  const modalContent = document.querySelector(".modal-content");
+  const gameTitle = document.querySelector(".game-title");
+
+  function showModalLoading() {
+    modalLoadingIndicator.style.display = "flex";
+    modalContent.classList.add("loading");
+  }
+
+  function hideModalLoading() {
+    modalLoadingIndicator.style.display = "none";
+    modalContent.classList.remove("loading");
+  }
+
+  function showLoading() {
+    loadingIndicator.style.display = "flex";
+  }
+
+  function hideLoading() {
+    loadingIndicator.style.display = "none";
+  }
 
   let username = "";
 
   // Constants
   const BOARD_WIDTH = 7;
   const BOARD_HEIGHT = 10;
-  const LETTERS = "AAAEEIOOPRSWLLMMCUU$";
+  const LETTERS = "AAAEEIOOPRSWVLLMMCUU$";
   const INITIAL_GAME_SPEED = 700;
   const SPEED_INCREASE_FACTOR = 0.9;
   const LETTERS_PER_SPEED_INCREASE = 3;
@@ -68,15 +95,9 @@ document.addEventListener("DOMContentLoaded", () => {
     [-1, -1],
   ];
 
-  const leaderboardData = [
-    { username: "Player1", score: 1000 },
-    { username: "Player2", score: 900 },
-    { username: "Player3", score: 800 },
-    { username: "Player4", score: 700 },
-    { username: "Player5", score: 600 },
-  ];
-
   walletConnection.addEventListener("walletConnected", async (event) => {
+    showLoading();
+
     console.log("Wallet connected:", event.detail);
     connectWalletScreen.style.display = "none";
 
@@ -111,6 +132,8 @@ document.addEventListener("DOMContentLoaded", () => {
         "An error occurred while setting up your account. Please try again.",
       );
       usernameScreen.style.display = "block";
+    } finally {
+      hideLoading();
     }
   });
 
@@ -120,6 +143,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (username) {
+      showLoading();
+
       try {
         await addUsername(
           walletConnection,
@@ -132,6 +157,8 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (error) {
         console.error("Error adding username:", error);
         alert("Failed to set username. Please try again.");
+      } finally {
+        hideLoading();
       }
     } else {
       alert("Please enter a valid username.");
@@ -143,11 +170,14 @@ document.addEventListener("DOMContentLoaded", () => {
   backToMenuBtn.addEventListener("click", () => {
     leaderboardScreen.style.display = "none";
     menuScreen.style.display = "block";
+    gameTitle.textContent = "WordStack"; // Change title back to WordStack
   });
+  backToMenuFromModalBtn.addEventListener("click", backToMenuFromModal);
 
   leftBtn.addEventListener("click", () => moveLetter("left"));
   downBtn.addEventListener("click", () => moveLetter("down"));
   rightBtn.addEventListener("click", () => moveLetter("right"));
+  playAgainBtn.addEventListener("click", resetGame);
 
   function startGame() {
     if (walletConnection.walletAddress && username) {
@@ -171,25 +201,42 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function showLeaderboard() {
+    showLoading();
+
     try {
-      const leaderboardData = await getLeaderboard(walletConnection, 10); // Get top 10
+      const leaderboardData = await getLeaderboard(walletConnection, 10);
       console.log("Leaderboard data:", leaderboardData);
 
-      // You can also stringify the data for a more readable console output
-      console.log(
-        "Leaderboard data (stringified):",
-        JSON.stringify(leaderboardData, null, 2),
-      );
+      const leaderboardList = document.getElementById("leaderboardList");
+      leaderboardList.innerHTML = ""; // Clear previous entries
 
-      // For now, we'll just show an alert that the leaderboard was fetched
-      alert("Leaderboard data fetched. Check the console for details.");
+      if (leaderboardData.Messages && leaderboardData.Messages.length > 0) {
+        const leaderboard = JSON.parse(
+          leaderboardData.Messages[0].Data,
+        ).leaderboard;
 
-      // TODO: Implement the UI for displaying the leaderboard
-      leaderboardScreen.style.display = "block";
+        leaderboard.forEach((entry, index) => {
+          const item = document.createElement("div");
+          item.className = "leaderboard-item";
+          item.innerHTML = `
+                      <span class="place">#${index + 1}</span>
+                      <span class="username">${entry.username}</span>
+                      <span class="score">${entry.maxScore}</span>
+                  `;
+          leaderboardList.appendChild(item);
+        });
+      } else {
+        leaderboardList.innerHTML = "<p>No leaderboard data available.</p>";
+      }
+
+      gameTitle.textContent = "Leaderboard"; // Change title to Leaderboard
+      leaderboardScreen.style.display = "flex";
       menuScreen.style.display = "none";
     } catch (error) {
       console.error("Error fetching leaderboard:", error);
       alert("Failed to fetch leaderboard. Please try again.");
+    } finally {
+      hideLoading();
     }
   }
 
@@ -517,52 +564,103 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function backToMenuFromModal() {
+    gameOverModal.style.display = "none";
+    gameContainer.style.display = "none";
+    homepage.style.display = "flex";
+    menuScreen.style.display = "block";
+  }
+
   async function endGame() {
     clearInterval(gameLoop);
     document.removeEventListener("keydown", handleKeyPress);
     window.removeEventListener("resize", resizeBoard);
 
+    // Immediately show the game over modal
+    finalScoreElement.textContent = `Your score: ${score}`;
+    highScoreMessageElement.textContent = "Checking high score...";
+    document.getElementById("previousHighScore").textContent = "";
+    gameOverModal.style.display = "block";
+    showModalLoading();
+
     try {
-      // Perform dry run to check if the score is a new high score
-      const dryRunResult = await walletConnection.dryRunArweave([
-        { name: "Action", value: "UpdateMaxScore" },
-        { name: "Wallet-Address", value: walletConnection.walletAddress },
-        { name: "Score", value: score.toString() },
-      ]);
-
-      let isNewHighScore = false;
-      if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
-        const result = JSON.parse(dryRunResult.Messages[0].Data);
-        isNewHighScore = result.newHighScore === true;
-      }
-
-      // Update the max score in Arweave
-      await updateMaxScore(
+      // Perform dry run to get user data including current max score
+      const dryRunResult = await dryRunGetUserData(
         walletConnection,
         walletConnection.walletAddress,
-        score,
       );
 
-      // Show game over message
-      if (isNewHighScore) {
-        alert(`Game Over! Your score is ${score}. New High Score!`);
-      } else {
-        alert(`Game Over! Your score is ${score}.`);
+      let currentMaxScore = 0;
+      if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
+        const userData = JSON.parse(dryRunResult.Messages[0].Data);
+        currentMaxScore = userData.maxScore || 0;
       }
 
-      console.log("Max score updated in Arweave");
+      if (score > currentMaxScore) {
+        await updateMaxScore(
+          walletConnection,
+          walletConnection.walletAddress,
+          score,
+        );
+        highScoreMessageElement.textContent = "New High Score!";
+        document.getElementById("previousHighScore").textContent =
+          `Previous high score: ${currentMaxScore}`;
+      } else if (score === currentMaxScore) {
+        highScoreMessageElement.textContent = "You matched your high score!";
+      } else {
+        highScoreMessageElement.textContent =
+          "Not quite a high score this time.";
+        document.getElementById("previousHighScore").textContent =
+          `Your high score: ${currentMaxScore}`;
+      }
     } catch (error) {
-      console.error("Error updating max score:", error);
-      alert(`Game Over! Your score is ${score}. Failed to update high score.`);
+      console.error("Error checking/updating max score:", error);
+      highScoreMessageElement.textContent = "Failed to check high score.";
+    } finally {
+      hideModalLoading();
     }
+  }
 
+  function resetGame() {
+    // Hide the game over modal
+    gameOverModal.style.display = "none";
+
+    // Reset game state variables
+    score = 0;
     currentGameSpeed = INITIAL_GAME_SPEED;
     lettersPlaced = 0;
+    currentLetter = "";
+    currentPosition = { x: 0, y: 0 };
 
-    // Reset the game state or navigate back to the menu
-    // For example:
-    // resetGame();
-    // or
-    // showMenuScreen();
+    // Clear any existing game loop
+    clearInterval(gameLoop);
+
+    // Reset the board
+    initializeBoard();
+
+    // Reset UI
+    scoreDisplay.textContent = `Score: 0`;
+
+    // Clear the game board display
+    gameBoard.innerHTML = "";
+
+    // Redraw the empty board
+    drawBoard();
+
+    // Spawn a new letter
+    spawnLetter();
+
+    // Start a new game loop
+    gameLoop = setInterval(updateGame, currentGameSpeed);
+
+    // Re-add event listeners
+    document.addEventListener("keydown", handleKeyPress);
+    window.addEventListener("resize", resizeBoard);
+
+    // Make sure the game container is visible
+    gameContainer.style.display = "flex";
+
+    // Reset word list highlight
+    resetWordListHighlight();
   }
 });

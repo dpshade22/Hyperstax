@@ -2,13 +2,21 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
         <title>WordStack</title>
         <link rel="stylesheet" href="styles.css" />
     </head>
     <body>
+        <div id="loadingIndicator" class="loading-indicator">
+            <div class="pixel"></div>
+            <div class="pixel"></div>
+            <div class="pixel"></div>
+        </div>
         <div id="homepage">
-            <h1>WordStack</h1>
+            <h1 class="game-title">WordStack</h1>
             <div id="connectWalletScreen">
                 <arweave-wallet-connection></arweave-wallet-connection>
             </div>
@@ -31,7 +39,6 @@
                 </button>
             </div>
             <div id="leaderboardScreen" style="display: none">
-                <h2>Leaderboard</h2>
                 <div id="leaderboardList"></div>
                 <button id="backToMenu" class="pixelated-button">
                     Back to Menu
@@ -47,6 +54,25 @@
                 <button id="leftBtn">◀</button>
                 <button id="downBtn">▼</button>
                 <button id="rightBtn">▶</button>
+            </div>
+        </div>
+        <div id="gameOverModal" class="modal">
+            <div class="modal-content">
+                <h2>Game Over</h2>
+                <p id="finalScore"></p>
+                <p id="highScoreMessage"></p>
+                <p id="previousHighScore"></p>
+                <div id="modalLoadingIndicator" class="loading-indicator">
+                    <div class="pixel"></div>
+                    <div class="pixel"></div>
+                    <div class="pixel"></div>
+                </div>
+                <button id="playAgainBtn" class="pixelated-button">
+                    Play Again
+                </button>
+                <button id="backToMenuFromModal" class="pixelated-button">
+                    Back to Menu
+                </button>
             </div>
         </div>
         <script src="wallet-connection.js" type="module"></script>
