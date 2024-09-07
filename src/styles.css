@@ -328,7 +328,8 @@ arweave-wallet-connection::part(button):active {
     height: 100vh;
     width: 100%;
     max-width: none;
-    padding-top: 20px; /* Add some padding at the top */
+    padding-top: 20px;
+    /* Add some padding at the top */
 }
 
 #leaderboardList {
@@ -350,7 +351,8 @@ arweave-wallet-connection::part(button):active {
 
 .leaderboard-item .place {
     font-weight: bold;
-    margin-right: 5px; /* Reduced margin */
+    margin-right: 5px;
+    /* Reduced margin */
     min-width: 30px;
 }
 
@@ -360,12 +362,14 @@ arweave-wallet-connection::part(button):active {
     text-overflow: ellipsis;
     white-space: nowrap;
     margin-right: 10px;
-    text-align: left; /* Align text to the left */
+    text-align: left;
+    /* Align text to the left */
 }
 
 .leaderboard-item .score {
     text-align: right;
-    min-width: 60px; /* Add a minimum width to ensure consistent spacing */
+    min-width: 60px;
+    /* Add a minimum width to ensure consistent spacing */
 }
 
 #backToMenu {
@@ -387,16 +391,21 @@ arweave-wallet-connection::part(button):active {
     background-color: rgba(0, 0, 0, 0.4);
 }
 
+.modal.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .modal-content {
+    position: relative;
     background-color: #f0f0f0;
-    margin: 15% auto;
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
     max-width: 500px;
     text-align: center;
     border-radius: 10px;
-    position: relative;
 }
 
 #playAgainBtn,
@@ -441,6 +450,7 @@ arweave-wallet-connection::part(button):active {
     100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-10px);
     }
@@ -452,13 +462,13 @@ arweave-wallet-connection::part(button):active {
     top: 50%;
     transform: translate(-50%, -50%);
     background-color: rgba(240, 240, 240, 0.8);
-    padding: 20px;
     border-radius: 10px;
     width: 100%;
     height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
+    border-radius: 10px;
 }
 
 .modal-content > *:not(#modalLoadingIndicator) {

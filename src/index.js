@@ -44,6 +44,18 @@ document.addEventListener("DOMContentLoaded", () => {
     modalContent.classList.remove("loading");
   }
 
+  function showModal() {
+    const modal = document.getElementById("gameOverModal");
+    modal.style.display = "flex";
+    modal.classList.add("active");
+  }
+
+  function hideModal() {
+    const modal = document.getElementById("gameOverModal");
+    modal.style.display = "none";
+    modal.classList.remove("active");
+  }
+
   function showLoading() {
     loadingIndicator.style.display = "flex";
   }
@@ -592,11 +604,13 @@ document.addEventListener("DOMContentLoaded", () => {
     document.removeEventListener("keydown", handleKeyPress);
     window.removeEventListener("resize", resizeBoard);
 
+    showModal();
+
     // Immediately show the game over modal
     finalScoreElement.textContent = `Your score: ${score}`;
     highScoreMessageElement.textContent = "Checking high score...";
     document.getElementById("previousHighScore").textContent = "";
-    gameOverModal.style.display = "block";
+    showModal();
     showModalLoading();
 
     try {
@@ -638,8 +652,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function resetGame() {
-    // Hide the game over modal
-    gameOverModal.style.display = "none";
+    hideModal();
 
     // Reset game state variables
     score = 0;
