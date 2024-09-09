@@ -479,6 +479,11 @@ arweave-wallet-connection::part(button):active {
     opacity: 0.3;
 }
 
+.wallet-suffix {
+    font-style: italic;
+    opacity: 0.35;
+}
+
 /* Mobile Styles */
 @media (max-width: 768px) {
     #gameContainer {

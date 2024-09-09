@@ -243,20 +243,23 @@ document.addEventListener("DOMContentLoaded", () => {
         ).leaderboard;
 
         leaderboard.forEach((entry, index) => {
+          const shortWallet = entry.walletAddress.slice(-4); // Get last 4 characters of wallet address
+          const displayName = `${entry.username}<span class="wallet-suffix">#${shortWallet}</span>`;
+
           const item = document.createElement("div");
           item.className = "leaderboard-item";
           item.innerHTML = `
-                      <span class="place">#${index + 1}</span>
-                      <span class="username">${entry.username}</span>
-                      <span class="score">${entry.maxScore}</span>
-                  `;
+            <span class="place">#${index + 1}</span>
+            <span class="username">${displayName}</span>
+            <span class="score">${entry.maxScore}</span>
+          `;
           leaderboardList.appendChild(item);
         });
       } else {
         leaderboardList.innerHTML = "<p>No leaderboard data available.</p>";
       }
 
-      gameTitle.textContent = "Leaderboard"; // Change title to Leaderboard
+      gameTitle.textContent = "Leaderboard";
       leaderboardScreen.style.display = "flex";
       menuScreen.style.display = "none";
     } catch (error) {
