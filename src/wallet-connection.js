@@ -44,18 +44,24 @@ class ArweaveWalletConnection extends HTMLElement {
           width: 100%;
           height: 100%;
           overflow: auto;
+          background-color: rgba(0,0,0,0.1);
+          justify-content: center;
+          align-items: center;
         }
         .modal-content {
           background-color: #fefefe;
-          margin: 15% auto;
           padding: 20px;
           border: 1px solid #CBCBCB;
-          width: 400px;
+          width: 90%;
+          max-width: 400px;
           text-align: center;
           border-radius: 10px;
+          max-height: 90vh;
+          overflow-y: auto;
         }
         h3 {
           margin-top: 0;
+          font-size: 1.2em;
         }
         .connect-option {
           display: flex;
@@ -73,42 +79,58 @@ class ArweaveWalletConnection extends HTMLElement {
           background-color: rgba(240, 240, 240, 0.8);
         }
         .connect-option-icon {
-          flex: 0 0 56px;
-          height: 56px;
-          border-radius: 12px;
-          background-size: 30px 30px;
+          flex: 0 0 40px;
+          height: 40px;
+          border-radius: 8px;
+          background-size: 24px 24px;
           background-position: center;
           background-repeat: no-repeat;
-          margin-right: 0.75rem;
-        }
-        .connect-option-background {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-size: cover;
-          background-position: center;
-          opacity: 0.2;
-          z-index: 1;
+          margin-right: 0.5rem;
         }
         .connect-option-detail {
           text-align: left;
           position: relative;
           z-index: 2;
+          flex: 1;
         }
         .connect-option-name {
           font-weight: bold;
           margin: 0;
+          font-size: 0.9em;
         }
         .connect-option-desc {
           margin: 0;
-          font-size: 0.9em;
+          font-size: 0.8em;
           color: #666;
         }
         .recommended {
           color: #4CAF50;
-          font-size: 0.8em;
+          font-size: 0.7em;
+        }
+        @media (max-width: 480px) {
+          .modal-content {
+            padding: 15px;
+          }
+          h3 {
+            font-size: 1em;
+          }
+          .connect-option {
+            padding: 8px;
+          }
+          .connect-option-icon {
+            flex: 0 0 32px;
+            height: 32px;
+            background-size: 20px 20px;
+          }
+          .connect-option-name {
+            font-size: 0.8em;
+          }
+          .connect-option-desc {
+            font-size: 0.7em;
+          }
+          .recommended {
+            font-size: 0.6em;
+          }
         }
       </style>
       <button id="connectWallet" part="button">Connect Wallet</button>
@@ -169,7 +191,7 @@ class ArweaveWalletConnection extends HTMLElement {
   }
 
   openModal() {
-    this.shadowRoot.getElementById("walletModal").style.display = "block";
+    this.shadowRoot.getElementById("walletModal").style.display = "flex";
   }
 
   closeModal() {

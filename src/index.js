@@ -34,6 +34,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalContent = document.querySelector(".modal-content");
   const gameTitle = document.querySelector(".game-title");
 
+  function scrollToBottom() {
+    if (window.innerWidth <= 768) {
+      // Check if it's a mobile device
+      const gameBoard = document.getElementById("game-board");
+      gameBoard.scrollTop = gameBoard.scrollHeight;
+    }
+  }
+
   function showModalLoading() {
     modalLoadingIndicator.style.display = "flex";
     modalContent.classList.add("loading");
@@ -334,6 +342,8 @@ document.addEventListener("DOMContentLoaded", () => {
         gameBoard.children[currentPosition.y * BOARD_WIDTH + currentPosition.x];
       currentCell.textContent = currentLetter;
     }
+
+    scrollToBottom();
   }
 
   function spawnLetter() {
@@ -358,6 +368,7 @@ document.addEventListener("DOMContentLoaded", () => {
       spawnLetter();
     }
     drawBoard();
+    scrollToBottom();
   }
 
   function canMoveTo(x, y) {

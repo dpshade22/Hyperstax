@@ -306,13 +306,29 @@ arweave-wallet-connection::part(button):active {
     max-width: 300px;
 }
 
+#usernameScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
 #usernameInput {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     margin-bottom: 20px;
     font-size: 16px;
     border: 2px solid #4a4a4a;
     border-radius: 5px;
+    box-sizing: border-box;
+}
+
+#submitUsername {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
 }
 
 #menuScreen button,
@@ -329,7 +345,6 @@ arweave-wallet-connection::part(button):active {
     width: 100%;
     max-width: none;
     padding-top: 20px;
-    /* Add some padding at the top */
 }
 
 #leaderboardList {
@@ -352,7 +367,6 @@ arweave-wallet-connection::part(button):active {
 .leaderboard-item .place {
     font-weight: bold;
     margin-right: 5px;
-    /* Reduced margin */
     min-width: 30px;
 }
 
@@ -363,13 +377,11 @@ arweave-wallet-connection::part(button):active {
     white-space: nowrap;
     margin-right: 10px;
     text-align: left;
-    /* Align text to the left */
 }
 
 .leaderboard-item .score {
     text-align: right;
     min-width: 60px;
-    /* Add a minimum width to ensure consistent spacing */
 }
 
 #backToMenu {
@@ -539,5 +551,15 @@ arweave-wallet-connection::part(button):active {
     #leaderboardScreen {
         width: 90%;
         max-width: none;
+    }
+
+    #usernameInput {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    #submitUsername {
+        font-size: 14px;
+        padding: 10px;
     }
 }
