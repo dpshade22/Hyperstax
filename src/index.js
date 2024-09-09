@@ -199,6 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (walletConnection.walletAddress && currentUsername) {
       homepage.style.display = "none";
       gameContainer.style.display = "flex";
+      clearGameState();
       initializeBoard();
       resizeBoard();
       drawBoard();
@@ -604,8 +605,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.removeEventListener("keydown", handleKeyPress);
     window.removeEventListener("resize", resizeBoard);
 
-    showModal();
-
     // Immediately show the game over modal
     finalScoreElement.textContent = `Your score: ${score}`;
     highScoreMessageElement.textContent = "Checking high score...";
@@ -651,8 +650,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function resetGame() {
-    hideModal();
+  function clearGameState() {
+    // Reset UI
+    scoreDisplay.textContent = `Score: 0`;
+
+    // Clear the game board display
+    gameBoard.innerHTML = "";
 
     // Reset game state variables
     score = 0;
@@ -661,17 +664,18 @@ document.addEventListener("DOMContentLoaded", () => {
     currentLetter = "";
     currentPosition = { x: 0, y: 0 };
 
+    console.log("Clearing game state");
+  }
+
+  function resetGame() {
+    hideModal();
+    clearGameState();
+
     // Clear any existing game loop
     clearInterval(gameLoop);
 
     // Reset the board
     initializeBoard();
-
-    // Reset UI
-    scoreDisplay.textContent = `Score: 0`;
-
-    // Clear the game board display
-    gameBoard.innerHTML = "";
 
     // Redraw the empty board
     drawBoard();
@@ -688,9 +692,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Make sure the game container is visible
     gameContainer.style.display = "flex";
-
-    // Reset word list highlight
-    resetWordListHighlight();
 
     updateUserInfo();
   }
