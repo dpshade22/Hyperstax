@@ -7,6 +7,7 @@ import {
 import { arGql } from "ar-gql";
 import { ArConnect } from "arweavekit/auth";
 import * as othent from "@othent/kms";
+// import { QuickWallet } from "quick-wallet";
 
 const argql = arGql();
 const PROCESS_ID = "ZtS3h94Orj7jT56m3uP-n7iC5_56Z9LL24Vx21LW03k";
@@ -33,36 +34,185 @@ class ArweaveWalletConnection extends HTMLElement {
 
   getTemplate() {
     return `
-        <button id="connectWallet" part="button">Connect Wallet</button>
-      `;
+      <style>
+        .modal {
+          display: none;
+          position: fixed;
+          z-index: 1000;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          overflow: auto;
+        }
+        .modal-content {
+          background-color: #fefefe;
+          margin: 15% auto;
+          padding: 20px;
+          border: 1px solid #CBCBCB;
+          width: 400px;
+          text-align: center;
+          border-radius: 10px;
+        }
+        h3 {
+          margin-top: 0;
+        }
+        .connect-option {
+          display: flex;
+          align-items: center;
+          padding: 10px;
+          margin-bottom: 10px;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+          position: relative;
+          overflow: hidden;
+        }
+        .connect-option:hover {
+          background-color: rgba(240, 240, 240, 0.8);
+        }
+        .connect-option-icon {
+          flex: 0 0 56px;
+          height: 56px;
+          border-radius: 12px;
+          background-size: 30px 30px;
+          background-position: center;
+          background-repeat: no-repeat;
+          margin-right: 0.75rem;
+        }
+        .connect-option-background {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-size: cover;
+          background-position: center;
+          opacity: 0.2;
+          z-index: 1;
+        }
+        .connect-option-detail {
+          text-align: left;
+          position: relative;
+          z-index: 2;
+        }
+        .connect-option-name {
+          font-weight: bold;
+          margin: 0;
+        }
+        .connect-option-desc {
+          margin: 0;
+          font-size: 0.9em;
+          color: #666;
+        }
+        .recommended {
+          color: #4CAF50;
+          font-size: 0.8em;
+        }
+      </style>
+      <button id="connectWallet" part="button">Connect Wallet</button>
+      <div id="walletModal" class="modal">
+        <div class="modal-content">
+          <h3>Connect Wallet</h3>
+          <div id="quickWalletOption" class="connect-option">
+            <div class="connect-option-icon" style="background-image: url('https://arweave.net/aw_3Afim3oQU3JkaeWlh8DXQOcS8ZWt3niRpq-rrECA'); background-color: rgb(9, 70, 37);"></div>
+            <div class="connect-option-detail">
+              <p class="connect-option-name">QuickWallet <span class="recommended">(Recommended)</span></p>
+              <p class="connect-option-desc">Creates a new wallet for you, instantly.</p>
+            </div>
+          </div>
+          <div id="arconnectOption" class="connect-option">
+            <div class="connect-option-icon" style="background-image: url('https://arweave.net/tQUcL4wlNj_NED2VjUGUhfCTJ6pDN9P0e3CbnHo3vUE'); background-color: rgb(171, 154, 255);"></div>
+            <div class="connect-option-detail">
+              <p class="connect-option-name">ArConnect</p>
+              <p class="connect-option-desc">Non-custodial Arweave wallet for your favorite browser</p>
+            </div>
+          </div>
+          <div id="othentOption" class="connect-option">
+            <div class="connect-option-icon" style="background-image: url('https://arweave.net/33nBIUNlGK4MnWtJZQy9EzkVJaAd7WoydIKfkJoMvDs'); background-color: rgb(35, 117, 239);"></div>
+            <div class="connect-option-detail">
+              <p class="connect-option-name">Othent</p>
+              <p class="connect-option-desc">Web3 Authentication and Key Management</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   addEventListeners() {
     this.shadowRoot
       .getElementById("connectWallet")
-      .addEventListener("click", () => this.handleWalletConnection());
+      .addEventListener("click", () => this.openModal());
+
+    this.shadowRoot
+      .getElementById("arconnectOption")
+      .addEventListener("click", () => this.connectWallet("ArConnect"));
+
+    this.shadowRoot
+      .getElementById("othentOption")
+      .addEventListener("click", () => this.connectWallet("Othent"));
+
+    this.shadowRoot
+      .getElementById("quickWalletOption")
+      .addEventListener("click", () => this.connectWallet("QuickWallet"));
+
+    // Close the modal if clicking outside of it
+    this.shadowRoot
+      .getElementById("walletModal")
+      .addEventListener("click", (event) => {
+        if (event.target === this.shadowRoot.getElementById("walletModal")) {
+          this.closeModal();
+        }
+      });
   }
 
-  async handleWalletConnection() {
-    if (!this.walletAddress) {
-      await this.connectWallet();
-    } else {
+  openModal() {
+    this.shadowRoot.getElementById("walletModal").style.display = "block";
+  }
+
+  closeModal() {
+    this.shadowRoot.getElementById("walletModal").style.display = "none";
+  }
+
+  async connectWallet(method) {
+    this.closeModal();
+    if (this.walletAddress) {
       alert(`Already connected: ${this.walletAddress}`);
+      return;
     }
-  }
 
-  async connectWallet() {
     try {
-      (await this.tryArConnect()) || (await this.tryOthent());
+      switch (method) {
+        case "ArConnect":
+          await this.tryArConnect();
+          break;
+        case "Othent":
+          await this.tryOthent();
+          break;
+        case "QuickWallet":
+          await this.tryQuickWallet();
+          break;
+        default:
+          throw new Error("Unknown wallet method");
+      }
+
       if (this.walletAddress) {
         console.log(`Wallet connected successfully: ${this.walletAddress}`);
 
-        if (this.authMethod === "Othent") {
-          this.signer = createDataItemSigner(othent);
-        } else if (this.authMethod === "ArConnect") {
-          this.signer = createDataItemSigner(window.arweaveWallet);
-        } else {
-          throw new Error("Unknown auth method");
+        switch (this.authMethod) {
+          case "Othent":
+            this.signer = createDataItemSigner(othent);
+            break;
+          case "ArConnect":
+            this.signer = createDataItemSigner(window.arweaveWallet);
+            break;
+          case "QuickWallet":
+            this.signer = createDataItemSigner(QuickWallet);
+            break;
+          default:
+            throw new Error("Unknown auth method");
         }
 
         if (!this.signer) {
@@ -74,14 +224,13 @@ class ArweaveWalletConnection extends HTMLElement {
         this.dispatchEvent(
           new CustomEvent("walletConnected", { detail: this.walletAddress }),
         );
-        return true;
+      } else {
+        console.error("Failed to obtain wallet address");
       }
-      console.error("Failed to obtain wallet address");
     } catch (error) {
       console.error("Wallet connection failed:", error);
       alert("Failed to connect wallet. Please try again.");
     }
-    return false;
   }
 
   async tryArConnect() {
@@ -91,10 +240,9 @@ class ArweaveWalletConnection extends HTMLElement {
       });
       this.walletAddress = await window.arweaveWallet.getActiveAddress();
       this.authMethod = "ArConnect";
-      return true;
     } catch (error) {
       console.warn("ArConnect connection failed:", error);
-      return false;
+      throw error;
     }
   }
 
@@ -105,11 +253,24 @@ class ArweaveWalletConnection extends HTMLElement {
       });
       this.walletAddress = await othent.getActiveAddress();
       this.authMethod = "Othent";
-      return true;
     } catch (error) {
       console.error("Othent connection failed:", error);
       throw error;
     }
+  }
+
+  async tryQuickWallet() {
+    // try {
+    //   let wall = await QuickWallet.connect({
+    //     permissions: ["ACCESS_ADDRESS", "SIGN_TRANSACTION"],
+    //   });
+    //   console.log(wall);
+    //   this.walletAddress = await wall.getActiveAddress();
+    //   this.authMethod = "ArConnect";
+    // } catch (error) {
+    //   console.warn("ArConnect connection failed:", error);
+    //   throw error;
+    // }
   }
 
   async sendMessageToArweave(tags) {
