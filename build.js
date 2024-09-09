@@ -12,9 +12,6 @@ mkdirSync(join(rootDir, "dist"), { recursive: true });
 const filesToCopy = [
   { from: "src/index.html", to: "dist/index.html" },
   { from: "src/styles.css", to: "dist/styles.css" },
-  { from: "src/wallet-connection.js", to: "dist/wallet-connection.js" },
-  { from: "ArSpell_answers.txt", to: "dist/ArSpell_answers.txt" },
-  { from: "ArSpell_guesses.txt", to: "dist/ArSpell_guesses.txt" },
 ];
 
 filesToCopy.forEach((file) => {
@@ -32,13 +29,12 @@ filesToCopy.forEach((file) => {
 
 try {
   let result = await build({
-    entrypoints: [
-      join(rootDir, "src/index.js"),
-      join(rootDir, "src/wallet-connection.js"),
-    ],
+    entrypoints: [join(rootDir, "src/index.js")],
     outdir: join(rootDir, "dist/"),
-    minify: true,
+    minify: false,
     target: "browser",
+    splitting: true, // Enable code splitting
+    format: "esm", // Use ES modules
     define: {
       global: "globalThis",
       "process.env": JSON.stringify(process.env),
@@ -60,6 +56,39 @@ try {
           });
         },
       },
+      // {
+      //   name: "fix-arweave-import",
+      //   setup(build) {
+      //     build.onLoad({ filter: /.*/ }, async (args) => {
+      //       try {
+      //         const file = Bun.file(args.path);
+      //         const exists = await file.exists();
+
+      //         if (!exists) {
+      //           console.warn(`File does not exist: ${args.path}`);
+      //           return null; // Let Bun handle non-existent files
+      //         }
+
+      //         const text = await file.text();
+
+      //         if (typeof text !== "string") {
+      //           console.warn(`File content is not a string: ${args.path}`);
+      //           return null; // Let Bun handle this file normally
+      //         }
+
+      //         const contents = text.replace(
+      //           /var arweave = new common\.default\({/g,
+      //           "var arweave = new Arweave({",
+      //         );
+
+      //         return { contents };
+      //       } catch (error) {
+      //         console.error(`Error processing file ${args.path}:`, error);
+      //         return null; // Let Bun handle this file normally
+      //       }
+      //     });
+      //   },
+      // },
     ],
   });
 

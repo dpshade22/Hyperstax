@@ -1,82 +1,77 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-        />
-        <title>WordStack</title>
-        <link rel="stylesheet" href="styles.css" />
-    </head>
-    <body>
-        <div id="userInfo" class="user-info" style="display: none"></div>
-        <div id="loadingIndicator" class="loading-indicator">
-            <div class="pixel"></div>
-            <div class="pixel"></div>
-            <div class="pixel"></div>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>WordStack</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+    <div id="userInfo" class="user-info" style="display: none"></div>
+    <div id="loadingIndicator" class="loading-indicator">
+        <div class="pixel"></div>
+        <div class="pixel"></div>
+        <div class="pixel"></div>
+    </div>
+    <div id="homepage">
+        <h1 class="game-title">WordStack</h1>
+        <div id="connectWalletScreen">
+            <arweave-wallet-connection></arweave-wallet-connection>
         </div>
-        <div id="homepage">
-            <h1 class="game-title">WordStack</h1>
-            <div id="connectWalletScreen">
-                <arweave-wallet-connection></arweave-wallet-connection>
-            </div>
-            <div id="usernameScreen" style="display: none">
-                <input
-                    type="text"
-                    id="usernameInput"
-                    placeholder="Enter your username"
-                />
-                <button id="submitUsername" class="pixelated-button">
-                    Submit
-                </button>
-            </div>
-            <div id="menuScreen" style="display: none">
-                <button id="letsPlay" class="pixelated-button">
-                    Let's Play
-                </button>
-                <button id="showLeaderboard" class="pixelated-button">
-                    Leaderboard
-                </button>
-            </div>
-            <div id="leaderboardScreen" style="display: none">
-                <div id="leaderboardList"></div>
-                <button id="backToMenu" class="pixelated-button">
-                    Back to Menu
-                </button>
-            </div>
+        <div id="usernameScreen" style="display: none">
+            <input type="text" id="usernameInput" placeholder="Enter your username" />
+            <button id="submitUsername" class="pixelated-button">
+                Submit
+            </button>
         </div>
-        <div id="gameContainer" style="display: none">
-            <h1>WordStack</h1>
-            <div id="score">Score: 0</div>
-            <div id="word-list"></div>
-            <div id="game-board"></div>
-            <div id="controls">
-                <button id="leftBtn">◀</button>
-                <button id="downBtn">▼</button>
-                <button id="rightBtn">▶</button>
-            </div>
+        <div id="menuScreen" style="display: none">
+            <button id="letsPlay" class="pixelated-button">
+                Let's Play
+            </button>
+            <button id="showLeaderboard" class="pixelated-button">
+                Leaderboard
+            </button>
         </div>
-        <div id="gameOverModal" class="modal">
-            <div class="modal-content">
-                <h2>Game Over</h2>
-                <p id="finalScore"></p>
-                <p id="previousHighScore"></p>
-                <p id="highScoreMessage"></p>
-                <div id="modalLoadingIndicator" class="loading-indicator">
-                    <div class="pixel"></div>
-                    <div class="pixel"></div>
-                    <div class="pixel"></div>
-                </div>
-                <button id="playAgainBtn" class="pixelated-button">
-                    Play Again
-                </button>
-                <button id="backToMenuFromModal" class="pixelated-button">
-                    Back to Menu
-                </button>
-            </div>
+        <div id="leaderboardScreen" style="display: none">
+            <div id="leaderboardList"></div>
+            <button id="backToMenu" class="pixelated-button">
+                Back to Menu
+            </button>
         </div>
-        <script src="wallet-connection.js" type="module"></script>
-        <script src="index.js"></script>
-    </body>
+    </div>
+    <div id="gameContainer" style="display: none">
+        <h1>WordStack</h1>
+        <div id="score">Score: 0</div>
+        <div id="word-list"></div>
+        <div id="game-board"></div>
+        <div id="controls">
+            <button id="leftBtn">◀</button>
+            <button id="downBtn">▼</button>
+            <button id="rightBtn">▶</button>
+        </div>
+    </div>
+    <div id="gameOverModal" class="modal">
+        <div class="modal-content">
+            <h2>Game Over</h2>
+            <p id="finalScore"></p>
+            <p id="previousHighScore"></p>
+            <p id="highScoreMessage"></p>
+            <div id="modalLoadingIndicator" class="loading-indicator">
+                <div class="pixel"></div>
+                <div class="pixel"></div>
+                <div class="pixel"></div>
+            </div>
+            <button id="playAgainBtn" class="pixelated-button">
+                Play Again
+            </button>
+            <button id="backToMenuFromModal" class="pixelated-button">
+                Back to Menu
+            </button>
+        </div>
+    </div>
+    <script src="index.js"></script>
+</body>
+
 </html>
