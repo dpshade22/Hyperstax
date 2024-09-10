@@ -28,23 +28,28 @@
                     id="usernameInput"
                     placeholder="Enter your username"
                 />
-                <button id="submitUsername" class="pixelated-button">
-                    Submit
-                </button>
+                <pixelated-button
+                    id="submitUsername"
+                    text="Submit"
+                ></pixelated-button>
             </div>
             <div id="menuScreen" style="display: none">
-                <button id="letsPlay" class="pixelated-button">
-                    Let's Play
-                </button>
-                <button id="showLeaderboard" class="pixelated-button">
-                    Leaderboard
-                </button>
+                <pixelated-button
+                    id="letsPlay"
+                    text="Let's Play"
+                ></pixelated-button>
+                <div style="padding: 7px 0"></div>
+                <pixelated-button
+                    id="showLeaderboard"
+                    text="Leaderboard"
+                ></pixelated-button>
             </div>
             <div id="leaderboardScreen" style="display: none">
                 <div id="leaderboardList"></div>
-                <button id="backToMenu" class="pixelated-button">
-                    Back to Menu
-                </button>
+                <pixelated-button
+                    id="backToMenu"
+                    text="Back to Menu"
+                ></pixelated-button>
             </div>
         </div>
         <div id="gameContainer" style="display: none">
@@ -69,12 +74,15 @@
                     <div class="pixel"></div>
                     <div class="pixel"></div>
                 </div>
-                <button id="playAgainBtn" class="pixelated-button">
-                    Play Again
-                </button>
-                <button id="backToMenuFromModal" class="pixelated-button">
-                    Back to Menu
-                </button>
+                <pixelated-button
+                    id="playAgainBtn"
+                    text="Play Again"
+                ></pixelated-button>
+                <div style="padding: 7px 0"></div>
+                <pixelated-button
+                    id="backToMenuFromModal"
+                    text="Back to Menu"
+                ></pixelated-button>
             </div>
         </div>
         <script src="bundle.js"></script>

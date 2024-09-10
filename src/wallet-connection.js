@@ -113,127 +113,100 @@ class ArweaveWalletConnection extends HTMLElement {
     const optionsHtml = sortedOptions.map((option) => option.html).join("");
 
     return `
-      <style>
-        .modal {
-          display: none;
-          position: fixed;
-          z-index: 1000;
-          left: 0;
-          top: 0;
-          width: 100%;
-          height: 100%;
-          overflow: auto;
-          background-color: rgba(0,0,0,0.1);
-          justify-content: center;
-          align-items: center;
-        }
-        .modal-content {
-          background-color: #fefefe;
-          padding: 20px;
-          border: 1px solid #CBCBCB;
-          width: 90%;
-          max-width: 400px;
-          text-align: center;
-          border-radius: 10px;
-          max-height: 90vh;
-          overflow-y: auto;
-        }
-        h3 {
-          margin-top: 0;
-          font-size: 1.2em;
-        }
-        .connect-option {
-          display: flex;
-          align-items: center;
-          padding: 10px;
-          margin-bottom: 10px;
-          border: 1px solid #ddd;
-          border-radius: 5px;
-          cursor: pointer;
-          transition: background-color 0.3s;
-          position: relative;
-          overflow: hidden;
-        }
-        .connect-option:hover {
-          background-color: rgba(240, 240, 240, 0.8);
-        }
-        .connect-option-icon {
-          flex: 0 0 40px;
-          height: 40px;
-          border-radius: 8px;
-          background-size: 24px 24px;
-          background-position: center;
-          background-repeat: no-repeat;
-          margin-right: 0.5rem;
-        }
-        .connect-option-detail {
-          text-align: left;
-          position: relative;
-          z-index: 2;
-          flex: 1;
-        }
-        .connect-option-name {
-          font-weight: bold;
-          margin: 0;
-          font-size: 0.9em;
-        }
-        .connect-option-desc {
-          margin: 0;
-          font-size: 0.8em;
-          color: #666;
-        }
-        .connect-option.disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-          pointer-events: none;
-        }
-        .connect-option.disabled .connect-option-icon {
-          filter: grayscale(100%);
-        }
-        .recommended {
-          color: #4CAF50;
-          font-size: 0.7em;
-        }
-        @media (max-width: 480px) {
+        <style>
+          @font-face {
+            font-family: 'PPNeueBit';
+            src: url('/fonts/PPNeueBit-Bold.woff2') format('woff2');
+            font-weight: bold;
+            font-style: normal;
+          }
+
+          .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+          }
           .modal-content {
-            padding: 15px;
+            background-color: #e4e4e4;
+            padding: 20px;
+            border: 1px solid #232323;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
           }
           h3 {
-            font-size: 1em;
+            margin-top: 0;
+            font-size: 24px;
+            font-family: 'PPNeueBit', monospace;
+            color: #232323;
           }
           .connect-option {
-            padding: 8px;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #232323;
+            cursor: pointer;
+            transition: background-color 0.3s;
+          }
+          .connect-option:hover {
+            background-color: #d4d4d4;
           }
           .connect-option-icon {
-            flex: 0 0 32px;
-            height: 32px;
-            background-size: 20px 20px;
+            flex: 0 0 40px;
+            height: 40px;
+            background-size: 24px 24px;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin-right: 12px;
+          }
+          .connect-option-detail {
+            text-align: left;
           }
           .connect-option-name {
-            font-size: 0.8em;
+            font-weight: bold;
+            margin: 0;
+            font-size: 18px;
+            font-family: 'PPNeueBit', monospace;
+            color: #232323;
           }
           .connect-option-desc {
-            font-size: 0.7em;
+            margin: 0;
+            font-size: 14px;
+            color: #454545;
+            font-family: 'PPNeueBit', monospace;
+          }
+          .connect-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
           }
           .recommended {
-            font-size: 0.6em;
+            color: #427817;
+            font-size: 14px;
+            font-family: 'PPNeueBit', monospace;
           }
-        }
-      </style>
-      <button id="connectWallet" part="button">Connect Wallet</button>
-      <div id="walletModal" class="modal">
-        <div class="modal-content">
-          <h3>Connect Wallet</h3>
-          ${optionsHtml}
+        </style>
+        <pixelated-button text="Connect Wallet"></pixelated-button>
+        <div id="walletModal" class="modal">
+          <div class="modal-content">
+            <h3>Connect Wallet</h3>
+            ${optionsHtml}
           </div>
         </div>
-      </div>
-    `;
+      `;
   }
 
   addEventListeners() {
     this.shadowRoot
-      .getElementById("connectWallet")
+      .querySelector("pixelated-button")
       .addEventListener("click", () => this.openModal());
 
     if (!this.isMobile) {

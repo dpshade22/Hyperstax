@@ -1,6 +1,25 @@
-/* Global Styles */
-body {
-    font-family: "Courier New", monospace;
+@font-face {
+    font-family: "PPNeueBit 2";
+    src:
+        url("fonts/PPNeueBit-Regular.woff") format("woff"),
+        url("fonts/PPNeueBit-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "PPNeueBit 2";
+    src:
+        url("fonts/PPNeueBit-Bold.woff") format("woff"),
+        url("fonts/PPNeueBit-Bold.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+}
+
+body,
+button,
+input {
+    font-family: "PPNeueBit 2";
     display: flex;
     justify-content: center;
     align-items: center;
@@ -202,13 +221,14 @@ body {
     top: 20%;
     font-family: "Courier New", monospace;
     font-size: 0.8em;
-    color: #ffa500; /* Orange color */
+    color: #ffa500;
+    /* Orange color */
 }
 
 #jackpot-words::after {
     content: "";
     position: absolute;
-    top: 36px;
+    top: 28px;
     left: 50%;
     transform: translateX(-50%);
     width: 90%;
@@ -224,7 +244,8 @@ body {
     border: 1px solid #ccc;
     display: inline-block;
     margin: 2px;
-    font-size: 1em; /* Maintain original font size */
+    font-size: 1em;
+    /* Maintain original font size */
 }
 
 .word-item.jackpot-word {
@@ -339,6 +360,7 @@ arweave-wallet-connection::part(button):active {
 
 #usernameInput {
     width: 100%;
+    height: 36px;
     padding: 12px;
     margin-bottom: 20px;
     font-size: 16px;
@@ -382,8 +404,7 @@ arweave-wallet-connection::part(button):active {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
-    font-family: "Courier New", monospace;
-    font-size: 18px;
+    font-size: 34px;
 }
 
 .leaderboard-item .place {
@@ -423,33 +444,80 @@ arweave-wallet-connection::part(button):active {
     height: 100%;
     overflow: auto;
     background-color: rgba(0, 0, 0, 0.4);
-}
-
-.modal.active {
-    display: flex;
     justify-content: center;
     align-items: center;
 }
 
 .modal-content {
-    position: relative;
-    background-color: #f0f0f0;
+    font-size: 24px;
+    text-align: center;
+    background-color: #fefefe;
     padding: 20px;
     border: 1px solid #888;
-    width: 80%;
-    max-width: 500px;
-    text-align: center;
-    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 16px;
+    color: #000;
 }
 
-#playAgainBtn,
-#backToMenuFromModal {
-    margin-top: 20px;
-    width: 100%;
+h3 {
+    font-family:
+        Plus Jakarta Sans,
+        sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 120%;
+    margin-bottom: 24px;
 }
 
-#backToMenuFromModal {
-    margin-top: 10px;
+.connect-option {
+    display: flex;
+    align-items: center;
+    border-radius: 12px;
+    padding: 8px;
+    margin-bottom: 16px;
+}
+
+.connect-option:hover {
+    background: #efefef;
+    cursor: pointer;
+}
+
+.connect-option-icon {
+    flex: 0 0 56px;
+    height: 56px;
+    border-radius: 12px;
+    background-size: 30px 30px;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.connect-option-detail {
+    margin-left: 16px;
+}
+
+.connect-option-name {
+    font-family:
+        Plus Jakarta Sans,
+        sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 2px;
+}
+
+.connect-option-desc {
+    font-family:
+        Plus Jakarta Sans,
+        sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.2;
+}
+
+.disabled {
+    opacity: 0.5;
+    pointer-events: none;
 }
 
 /* Loading Indicator */
@@ -551,8 +619,10 @@ arweave-wallet-connection::part(button):active {
     }
 
     #jackpot-words {
-        padding-bottom: 10px; /* Adjust space for the divider on mobile */
-        padding-left: 20px; /* Adjust space for the x5 indicator on mobile */
+        padding-bottom: 10px;
+        /* Adjust space for the divider on mobile */
+        padding-left: 20px;
+        /* Adjust space for the x5 indicator on mobile */
     }
 
     #jackpot-words::before {
@@ -561,7 +631,8 @@ arweave-wallet-connection::part(button):active {
 
     .word-item {
         padding: 3px 6px;
-        font-size: 0.9em; /* Slightly smaller on mobile, but not too small */
+        font-size: 0.9em;
+        /* Slightly smaller on mobile, but not too small */
     }
 
     .pixelated-button {

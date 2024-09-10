@@ -6,6 +6,8 @@ import {
   getLeaderboard,
 } from "./arweave-helpers.js";
 
+import { PixelatedButton } from "./pixelated-button.js";
+
 document.addEventListener("DOMContentLoaded", () => {
   const homepage = document.getElementById("homepage");
   const gameContainer = document.getElementById("gameContainer");
