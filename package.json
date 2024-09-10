@@ -13,6 +13,7 @@
     "@permaweb/aoconnect": "^0.0.59",
     "ar-gql": "^2.0.0",
     "arweave": "latest",
+    "arweave-wallet-connector": "^1.0.2",
     "arweavekit": "^1.5.1",
     "babel-loader": "^9.1.3",
     "buffer": "^6.0.3",

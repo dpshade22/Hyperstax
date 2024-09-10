@@ -8,7 +8,7 @@ import { arGql } from "ar-gql";
 import { ArConnect } from "arweavekit/auth";
 import * as othent from "@othent/kms";
 import { QuickWallet } from "quick-wallet";
-import Arweave from 'arweave';
+import { ArweaveWebWallet } from "arweave-wallet-connector";
 
 // const createDataItemSignerJWK = (wallet) => {
 //   const signer = async ({ data, tags, target, anchor }) => {
@@ -44,10 +44,55 @@ class ArweaveWalletConnection extends HTMLElement {
   }
 
   render() {
+    this.isMobile = isMobile();
     this.shadowRoot.innerHTML = this.getTemplate();
   }
 
   getTemplate() {
+    const quickWalletOption = `
+      <div id="quickWalletOption" class="connect-option">
+        <div class="connect-option-icon" style="background-image: url('https://arweave.net/aw_3Afim3oQU3JkaeWlh8DXQOcS8ZWt3niRpq-rrECA'); background-color: rgb(9, 70, 37);"></div>
+        <div class="connect-option-detail">
+          <p class="connect-option-name">QuickWallet <span class="recommended">(Recommended)</span></p>
+          <p class="connect-option-desc">Creates a new wallet for you, instantly.</p>
+        </div>
+      </div>
+    `;
+
+    const othentOption = `
+      <div id="othentOption" class="connect-option">
+        <div class="connect-option-icon" style="background-image: url('https://arweave.net/33nBIUNlGK4MnWtJZQy9EzkVJaAd7WoydIKfkJoMvDs'); background-color: rgb(35, 117, 239);"></div>
+        <div class="connect-option-detail">
+          <p class="connect-option-name">Othent</p>
+          <p class="connect-option-desc">Web3 Authentication and Key Management</p>
+        </div>
+      </div>
+    `;
+
+    const arweaveAppOption = `
+      <div id="arweaveAppOption" class="connect-option">
+        <div class="connect-option-icon" style="background-image: url('https://arweave.net/qVms-k8Ox-eKFJN5QFvrPQvT9ryqQXaFcYbr-fJbgLY'); background-color: black;"></div>
+        <div class="connect-option-detail">
+          <p class="connect-option-name">Arweave.app</p>
+          <p class="connect-option-desc">Web based wallet software</p>
+        </div>
+      </div>
+    `;
+
+    const arconnectOption = `
+      <div id="arconnectOption" class="connect-option ${this.isMobile ? "disabled" : ""}">
+        <div class="connect-option-icon" style="background-image: url('https://arweave.net/tQUcL4wlNj_NED2VjUGUhfCTJ6pDN9P0e3CbnHo3vUE'); background-color: rgb(171, 154, 255);"></div>
+        <div class="connect-option-detail">
+          <p class="connect-option-name">ArConnect</p>
+          <p class="connect-option-desc">${this.isMobile ? "Limited mobile support... " : ""}Non-custodial Arweave wallet for your favorite browser</p>
+        </div>
+      </div>
+    `;
+
+    const optionsOrder = this.isMobile
+      ? quickWalletOption + arweaveAppOption + othentOption + arconnectOption
+      : quickWalletOption + arweaveAppOption + arconnectOption + othentOption;
+
     return `
       <style>
         .modal {
@@ -118,6 +163,14 @@ class ArweaveWalletConnection extends HTMLElement {
           font-size: 0.8em;
           color: #666;
         }
+        .connect-option.disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          pointer-events: none;
+        }
+        .connect-option.disabled .connect-option-icon {
+          filter: grayscale(100%);
+        }
         .recommended {
           color: #4CAF50;
           font-size: 0.7em;
@@ -152,26 +205,7 @@ class ArweaveWalletConnection extends HTMLElement {
       <div id="walletModal" class="modal">
         <div class="modal-content">
           <h3>Connect Wallet</h3>
-          <div id="quickWalletOption" class="connect-option">
-            <div class="connect-option-icon" style="background-image: url('https://arweave.net/aw_3Afim3oQU3JkaeWlh8DXQOcS8ZWt3niRpq-rrECA'); background-color: rgb(9, 70, 37);"></div>
-            <div class="connect-option-detail">
-              <p class="connect-option-name">QuickWallet <span class="recommended">(Recommended)</span></p>
-              <p class="connect-option-desc">Creates a new wallet for you, instantly.</p>
-            </div>
-          </div>
-          <div id="arconnectOption" class="connect-option">
-            <div class="connect-option-icon" style="background-image: url('https://arweave.net/tQUcL4wlNj_NED2VjUGUhfCTJ6pDN9P0e3CbnHo3vUE'); background-color: rgb(171, 154, 255);"></div>
-            <div class="connect-option-detail">
-              <p class="connect-option-name">ArConnect</p>
-              <p class="connect-option-desc">Non-custodial Arweave wallet for your favorite browser</p>
-            </div>
-          </div>
-          <div id="othentOption" class="connect-option">
-            <div class="connect-option-icon" style="background-image: url('https://arweave.net/33nBIUNlGK4MnWtJZQy9EzkVJaAd7WoydIKfkJoMvDs'); background-color: rgb(35, 117, 239);"></div>
-            <div class="connect-option-detail">
-              <p class="connect-option-name">Othent</p>
-              <p class="connect-option-desc">Web3 Authentication and Key Management</p>
-            </div>
+          ${optionsOrder}
           </div>
         </div>
       </div>
@@ -183,9 +217,15 @@ class ArweaveWalletConnection extends HTMLElement {
       .getElementById("connectWallet")
       .addEventListener("click", () => this.openModal());
 
+    if (!this.isMobile) {
+      this.shadowRoot
+        .getElementById("arconnectOption")
+        .addEventListener("click", () => this.connectWallet("ArConnect"));
+    }
+
     this.shadowRoot
-      .getElementById("arconnectOption")
-      .addEventListener("click", () => this.connectWallet("ArConnect"));
+      .getElementById("arweaveAppOption")
+      .addEventListener("click", () => this.connectWallet("ArweaveApp"));
 
     this.shadowRoot
       .getElementById("othentOption")
@@ -203,6 +243,18 @@ class ArweaveWalletConnection extends HTMLElement {
           this.closeModal();
         }
       });
+
+    const arconnectOption = this.shadowRoot.getElementById("arconnectOption");
+    if (!this.isMobile) {
+      arconnectOption.addEventListener("click", () =>
+        this.connectWallet("ArConnect"),
+      );
+    } else {
+      arconnectOption.addEventListener("click", (e) => {
+        e.preventDefault();
+        alert("ArConnect is not available on mobile devices.");
+      });
+    }
   }
 
   openModal() {
@@ -225,6 +277,9 @@ class ArweaveWalletConnection extends HTMLElement {
         case "ArConnect":
           await this.tryArConnect();
           break;
+        case "ArweaveApp":
+          await this.tryArweaveApp();
+          break;
         case "Othent":
           await this.tryOthent();
           break;
@@ -242,6 +297,9 @@ class ArweaveWalletConnection extends HTMLElement {
           case "Othent":
             console.log(othent);
             this.signer = createDataItemSigner(othent);
+            break;
+          case "ArweaveApp":
+            this.signer = createDataItemSigner(this.generatedWallet);
             break;
           case "ArConnect":
             console.log(window.arweaveWallet);
@@ -283,6 +341,26 @@ class ArweaveWalletConnection extends HTMLElement {
       this.authMethod = "ArConnect";
     } catch (error) {
       console.warn("ArConnect connection failed:", error);
+      throw error;
+    }
+  }
+
+  async tryArweaveApp() {
+    try {
+      console.log("Connecting to Arweave.app...");
+      const arweaveAppWallet = new ArweaveWebWallet();
+      arweaveAppWallet.setUrl("https://arweave.app");
+      await arweaveAppWallet.connect();
+
+      this.generatedWallet = arweaveAppWallet;
+      // Access the arweaveWallet namespace
+      const arweaveWalletNamespace = arweaveAppWallet.namespaces.arweaveWallet;
+
+      // Get the active address
+      this.walletAddress = arweaveWalletNamespace.getActiveAddress();
+      this.authMethod = "ArweaveApp";
+    } catch (error) {
+      console.error("Arweave.app connection failed:", error);
       throw error;
     }
   }
@@ -388,6 +466,12 @@ class ArweaveWalletConnection extends HTMLElement {
       throw error;
     }
   }
+}
+
+function isMobile() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent,
+  );
 }
 
 // Check if the custom element has already been defined
