@@ -49,49 +49,68 @@ class ArweaveWalletConnection extends HTMLElement {
   }
 
   getTemplate() {
-    const quickWalletOption = `
-      <div id="quickWalletOption" class="connect-option">
-        <div class="connect-option-icon" style="background-image: url('https://arweave.net/aw_3Afim3oQU3JkaeWlh8DXQOcS8ZWt3niRpq-rrECA'); background-color: rgb(9, 70, 37);"></div>
-        <div class="connect-option-detail">
-          <p class="connect-option-name">QuickWallet <span class="recommended">(Recommended)</span></p>
-          <p class="connect-option-desc">Creates a new wallet for you, instantly.</p>
-        </div>
-      </div>
-    `;
+    const options = [
+      {
+        id: "quickWalletOption",
+        html: `
+          <div id="quickWalletOption" class="connect-option">
+            <div class="connect-option-icon" style="background-image: url('https://arweave.net/aw_3Afim3oQU3JkaeWlh8DXQOcS8ZWt3niRpq-rrECA'); background-color: rgb(9, 70, 37);"></div>
+            <div class="connect-option-detail">
+              <p class="connect-option-name">QuickWallet <span class="recommended">(Recommended)</span></p>
+              <p class="connect-option-desc">Creates a new wallet for you, instantly.</p>
+            </div>
+          </div>
+        `,
+        disabled: false,
+      },
+      {
+        id: "othentOption",
+        html: `
+          <div id="othentOption" class="connect-option disabled">
+            <div class="connect-option-icon" style="background-image: url('https://arweave.net/33nBIUNlGK4MnWtJZQy9EzkVJaAd7WoydIKfkJoMvDs'); background-color: rgb(35, 117, 239);"></div>
+            <div class="connect-option-detail">
+              <p class="connect-option-name">Othent</p>
+              <p class="connect-option-desc">Web3 Authentication and Key Management</p>
+            </div>
+          </div>
+        `,
+        disabled: true,
+      },
+      {
+        id: "arweaveAppOption",
+        html: `
+          <div id="arweaveAppOption" class="connect-option">
+            <div class="connect-option-icon" style="background-image: url('https://arweave.net/qVms-k8Ox-eKFJN5QFvrPQvT9ryqQXaFcYbr-fJbgLY'); background-color: black;"></div>
+            <div class="connect-option-detail">
+              <p class="connect-option-name">Arweave.app</p>
+              <p class="connect-option-desc">Web based wallet software</p>
+            </div>
+          </div>
+        `,
+        disabled: false,
+      },
+      {
+        id: "arconnectOption",
+        html: `
+          <div id="arconnectOption" class="connect-option ${this.isMobile ? "disabled" : ""}">
+            <div class="connect-option-icon" style="background-image: url('https://arweave.net/tQUcL4wlNj_NED2VjUGUhfCTJ6pDN9P0e3CbnHo3vUE'); background-color: rgb(171, 154, 255);"></div>
+            <div class="connect-option-detail">
+              <p class="connect-option-name">ArConnect</p>
+              <p class="connect-option-desc">${this.isMobile ? "Limited mobile support... " : ""}Non-custodial Arweave wallet for your favorite browser</p>
+            </div>
+          </div>
+        `,
+        disabled: this.isMobile,
+      },
+    ];
 
-    const othentOption = `
-      <div id="othentOption" class="connect-option">
-        <div class="connect-option-icon" style="background-image: url('https://arweave.net/33nBIUNlGK4MnWtJZQy9EzkVJaAd7WoydIKfkJoMvDs'); background-color: rgb(35, 117, 239);"></div>
-        <div class="connect-option-detail">
-          <p class="connect-option-name">Othent</p>
-          <p class="connect-option-desc">Web3 Authentication and Key Management</p>
-        </div>
-      </div>
-    `;
+    // Sort options: enabled first, then disabled
+    const sortedOptions = options.sort((a, b) => {
+      if (a.disabled === b.disabled) return 0;
+      return a.disabled ? 1 : -1;
+    });
 
-    const arweaveAppOption = `
-      <div id="arweaveAppOption" class="connect-option">
-        <div class="connect-option-icon" style="background-image: url('https://arweave.net/qVms-k8Ox-eKFJN5QFvrPQvT9ryqQXaFcYbr-fJbgLY'); background-color: black;"></div>
-        <div class="connect-option-detail">
-          <p class="connect-option-name">Arweave.app</p>
-          <p class="connect-option-desc">Web based wallet software</p>
-        </div>
-      </div>
-    `;
-
-    const arconnectOption = `
-      <div id="arconnectOption" class="connect-option ${this.isMobile ? "disabled" : ""}">
-        <div class="connect-option-icon" style="background-image: url('https://arweave.net/tQUcL4wlNj_NED2VjUGUhfCTJ6pDN9P0e3CbnHo3vUE'); background-color: rgb(171, 154, 255);"></div>
-        <div class="connect-option-detail">
-          <p class="connect-option-name">ArConnect</p>
-          <p class="connect-option-desc">${this.isMobile ? "Limited mobile support... " : ""}Non-custodial Arweave wallet for your favorite browser</p>
-        </div>
-      </div>
-    `;
-
-    const optionsOrder = this.isMobile
-      ? quickWalletOption + arweaveAppOption + othentOption + arconnectOption
-      : quickWalletOption + arweaveAppOption + arconnectOption + othentOption;
+    const optionsHtml = sortedOptions.map((option) => option.html).join("");
 
     return `
       <style>
@@ -205,7 +224,7 @@ class ArweaveWalletConnection extends HTMLElement {
       <div id="walletModal" class="modal">
         <div class="modal-content">
           <h3>Connect Wallet</h3>
-          ${optionsOrder}
+          ${optionsHtml}
           </div>
         </div>
       </div>
@@ -367,11 +386,20 @@ class ArweaveWalletConnection extends HTMLElement {
 
   async tryOthent() {
     try {
-      await othent.connect({
-        permissions: ["ACCESS_ADDRESS", "SIGN_TRANSACTION"],
-      });
-      this.walletAddress = await othent.getActiveAddress();
-      this.authMethod = "Othent";
+      console.log("Initializing Othent...");
+      const othentInstance = await Othent({});
+
+      console.log("Attempting to log in with Othent...");
+      const result = await othentInstance.logIn();
+      console.log("Login result:", result);
+
+      if (result && result.address) {
+        this.walletAddress = result.address;
+        console.log("Connected. Wallet address:", this.walletAddress);
+        this.authMethod = "Othent";
+      } else {
+        throw new Error("Failed to log in with Othent");
+      }
     } catch (error) {
       console.error("Othent connection failed:", error);
       throw error;

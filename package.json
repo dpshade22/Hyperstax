@@ -9,7 +9,7 @@
   "dependencies": {
     "@babel/core": "^7.25.2",
     "@babel/preset-env": "^7.25.4",
-    "@othent/kms": "^1.0.8",
+    "@othent/kms": "^2.0.0",
     "@permaweb/aoconnect": "^0.0.59",
     "ar-gql": "^2.0.0",
     "arweave": "latest",
