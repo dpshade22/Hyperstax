@@ -33,7 +33,7 @@ try {
     outdir: join(rootDir, "dist/"),
     minify: false,
     target: "browser",
-    splitting: true, // Enable code splitting
+    splitting: false, // Enable code splitting
     format: "esm", // Use ES modules
     define: {
       global: "globalThis",

@@ -7,21 +7,21 @@ import {
 import { arGql } from "ar-gql";
 import { ArConnect } from "arweavekit/auth";
 import * as othent from "@othent/kms";
-import { createData, ArweaveSigner } from "warp-arbundles";
+import { QuickWallet } from "quick-wallet";
 
-const createDataItemSignerJWK = (wallet) => {
-  const signer = async ({ data, tags, target, anchor }) => {
-    const signer2 = new ArweaveSigner(wallet);
-    const dataItem = createData(data, signer2, { tags, target, anchor });
-    return dataItem.sign(signer2).then(async () => ({
-      id: await dataItem.id,
-      raw: await dataItem.getRaw(),
-    }));
-  };
-  return signer;
-};
-// Initialize Arweave
-const arweave = Arweave.init({});
+// const createDataItemSignerJWK = (wallet) => {
+//   const signer = async ({ data, tags, target, anchor }) => {
+//     const signer2 = new ArweaveSigner(wallet);
+//     const dataItem = createData(data, signer2, { tags, target, anchor });
+//     return dataItem.sign(signer2).then(async () => ({
+//       id: await dataItem.id,
+//       raw: await dataItem.getRaw(),
+//     }));
+//   };
+//   return signer;
+// };
+// // Initialize Arweave
+// const arweave = Arweave.init({});
 
 const argql = arGql();
 const PROCESS_ID = "ZtS3h94Orj7jT56m3uP-n7iC5_56Z9LL24Vx21LW03k";
@@ -248,7 +248,8 @@ class ArweaveWalletConnection extends HTMLElement {
             break;
           case "QuickWallet":
             console.log(this.generatedWallet);
-            this.signer = createDataItemSignerJWK(this.generatedWallet);
+            this.signer = createDataItemSigner(QuickWallet);
+            // this.signer = createDataItemSignerJWK(this.generatedWallet);
             break;
           default:
             throw new Error("Unknown auth method");
@@ -300,16 +301,27 @@ class ArweaveWalletConnection extends HTMLElement {
 
   async tryQuickWallet() {
     try {
-      const key = await arweave.wallets.generate();
-      const address = await arweave.wallets.jwkToAddress(key);
-      this.walletAddress = address;
-      this.generatedWallet = key;
+      await QuickWallet.connect();
+      this.walletAddress = await QuickWallet.getActiveAddress();
       this.authMethod = "QuickWallet";
     } catch (error) {
       console.warn("Quick wallet connection failed:", error);
       throw error;
     }
   }
+
+  // async tryQuickWallet() {
+  //   try {
+  //     const key = await arweave.wallets.generate();
+  //     const address = await arweave.wallets.jwkToAddress(key);
+  //     this.walletAddress = address;
+  //     this.generatedWallet = key;
+  //     this.authMethod = "QuickWallet";
+  //   } catch (error) {
+  //     console.warn("Quick wallet connection failed:", error);
+  //     throw error;
+  //   }
+  // }
 
   async sendMessageToArweave(tags) {
     if (!this.signer) {

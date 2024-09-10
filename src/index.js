@@ -90,6 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentLetter = "";
   let currentPosition = { x: 0, y: 0 };
   let gameLoop;
+  let wordsToProcess;
 
   const WORDS = [
     "ARWEAVE",
@@ -424,7 +425,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const uniqueWordsFound = Array.from(wordsFound).map(JSON.parse);
-
+    wordsToProcess = uniqueWordsFound;
     if (uniqueWordsFound.length > 0) {
       processFoundWords(uniqueWordsFound);
     } else {
@@ -619,8 +620,12 @@ document.addEventListener("DOMContentLoaded", () => {
     document.removeEventListener("keydown", handleKeyPress);
     window.removeEventListener("resize", resizeBoard);
 
-    // Immediately show the game over modal
+    if (isProcessingWords)
+      await processFoundWords(wordsToProcess);
+
     finalScoreElement.textContent = `Your score: ${score}`;
+
+    // Immediately show the game over modal
     highScoreMessageElement.textContent = "Checking high score...";
     document.getElementById("previousHighScore").textContent = "";
     showModal();
@@ -656,6 +661,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("previousHighScore").textContent =
           `Your high score: ${currentMaxScore}`;
       }
+
     } catch (error) {
       console.error("Error checking/updating max score:", error);
       highScoreMessageElement.textContent = "Failed to check high score.";
