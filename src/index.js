@@ -254,7 +254,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         leaderboard.forEach((entry, index) => {
           const shortWallet = entry.walletAddress.slice(-4); // Get last 4 characters of wallet address
-          const displayName = `${entry.username}<span class="wallet-suffix">#${shortWallet}</span>`;
+
+          const displayName =
+            entry.username != "Unknown"
+              ? `${entry.username}<span class="wallet-suffix">#${shortWallet}</span>`
+              : `<span class="wallet-suffix">#${entry.walletAddress.slice(-12)}</span>`;
 
           const item = document.createElement("div");
           item.className = "leaderboard-item";
@@ -620,8 +624,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.removeEventListener("keydown", handleKeyPress);
     window.removeEventListener("resize", resizeBoard);
 
-    if (isProcessingWords)
-      await processFoundWords(wordsToProcess);
+    if (isProcessingWords) await processFoundWords(wordsToProcess);
 
     finalScoreElement.textContent = `Your score: ${score}`;
 
@@ -661,7 +664,6 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("previousHighScore").textContent =
           `Your high score: ${currentMaxScore}`;
       }
-
     } catch (error) {
       console.error("Error checking/updating max score:", error);
       highScoreMessageElement.textContent = "Failed to check high score.";
