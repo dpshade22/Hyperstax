@@ -282,9 +282,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function displayWordList() {
     const wordListElement = document.getElementById("word-list");
     wordListElement.innerHTML = `
-      <div id="jackpot-words"></div>
-      <div id="regular-words"></div>
-    `;
+          <div id="jackpot-words"></div>
+          <div id="regular-words"></div>
+      `;
 
     const jackpotWordsElement = document.getElementById("jackpot-words");
     const regularWordsElement = document.getElementById("regular-words");

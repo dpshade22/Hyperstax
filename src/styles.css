@@ -169,6 +169,7 @@ body {
 }
 
 /* Word List */
+
 #word-list {
     display: flex;
     flex-direction: column;
@@ -176,10 +177,8 @@ body {
     gap: 10px;
     margin-bottom: 10px;
     font-size: 1.2em;
-}
-
-#score {
-    margin-bottom: 1rem;
+    position: relative;
+    padding-top: 15px;
 }
 
 #jackpot-words,
@@ -188,14 +187,39 @@ body {
     flex-wrap: wrap;
     justify-content: center;
     gap: 10px;
+    width: 100%;
 }
 
-#jackpot-words::after {
+#jackpot-words {
+    position: relative;
+}
+
+#jackpot-words::before {
+    content: "x5";
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: "Courier New", monospace;
+    font-size: 1em;
+    color: #ffa500; /* Orange color */
+}
+
+#word-list::after {
     content: "";
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
     width: 100%;
     height: 2px;
     background-color: #ccc;
-    margin: 5px 0;
+    margin-bottom: 10px;
+}
+
+/* Ensure the regular words have some top margin for separation */
+#regular-words {
+    margin-top: 20px;
 }
 
 .word-item {
@@ -203,6 +227,8 @@ body {
     padding: 5px 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
+    display: inline-block;
+    margin: 2px;
 }
 
 .word-item.jackpot-word {
@@ -522,6 +548,10 @@ arweave-wallet-connection::part(button):active {
         width: 30vw;
         margin: 0;
         flex-basis: 30%;
+    }
+
+    #word-list::after {
+        width: 95vw;
     }
 
     #word-list {
