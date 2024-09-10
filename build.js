@@ -56,39 +56,6 @@ try {
           });
         },
       },
-      // {
-      //   name: "fix-arweave-import",
-      //   setup(build) {
-      //     build.onLoad({ filter: /.*/ }, async (args) => {
-      //       try {
-      //         const file = Bun.file(args.path);
-      //         const exists = await file.exists();
-
-      //         if (!exists) {
-      //           console.warn(`File does not exist: ${args.path}`);
-      //           return null; // Let Bun handle non-existent files
-      //         }
-
-      //         const text = await file.text();
-
-      //         if (typeof text !== "string") {
-      //           console.warn(`File content is not a string: ${args.path}`);
-      //           return null; // Let Bun handle this file normally
-      //         }
-
-      //         const contents = text.replace(
-      //           /var arweave = new common\.default\({/g,
-      //           "var arweave = new Arweave({",
-      //         );
-
-      //         return { contents };
-      //       } catch (error) {
-      //         console.error(`Error processing file ${args.path}:`, error);
-      //         return null; // Let Bun handle this file normally
-      //       }
-      //     });
-      //   },
-      // },
     ],
   });
 

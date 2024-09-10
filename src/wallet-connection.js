@@ -7,7 +7,21 @@ import {
 import { arGql } from "ar-gql";
 import { ArConnect } from "arweavekit/auth";
 import * as othent from "@othent/kms";
-// import { QuickWallet } from "quick-wallet";
+import { createData, ArweaveSigner } from "warp-arbundles";
+
+const createDataItemSignerJWK = (wallet) => {
+  const signer = async ({ data, tags, target, anchor }) => {
+    const signer2 = new ArweaveSigner(wallet);
+    const dataItem = createData(data, signer2, { tags, target, anchor });
+    return dataItem.sign(signer2).then(async () => ({
+      id: await dataItem.id,
+      raw: await dataItem.getRaw(),
+    }));
+  };
+  return signer;
+};
+// Initialize Arweave
+const arweave = Arweave.init({});
 
 const argql = arGql();
 const PROCESS_ID = "ZtS3h94Orj7jT56m3uP-n7iC5_56Z9LL24Vx21LW03k";
@@ -225,13 +239,16 @@ class ArweaveWalletConnection extends HTMLElement {
 
         switch (this.authMethod) {
           case "Othent":
+            console.log(othent);
             this.signer = createDataItemSigner(othent);
             break;
           case "ArConnect":
+            console.log(window.arweaveWallet);
             this.signer = createDataItemSigner(window.arweaveWallet);
             break;
           case "QuickWallet":
-            this.signer = createDataItemSigner(QuickWallet);
+            console.log(this.generatedWallet);
+            this.signer = createDataItemSignerJWK(this.generatedWallet);
             break;
           default:
             throw new Error("Unknown auth method");
@@ -282,17 +299,16 @@ class ArweaveWalletConnection extends HTMLElement {
   }
 
   async tryQuickWallet() {
-    // try {
-    //   let wall = await QuickWallet.connect({
-    //     permissions: ["ACCESS_ADDRESS", "SIGN_TRANSACTION"],
-    //   });
-    //   console.log(wall);
-    //   this.walletAddress = await wall.getActiveAddress();
-    //   this.authMethod = "ArConnect";
-    // } catch (error) {
-    //   console.warn("ArConnect connection failed:", error);
-    //   throw error;
-    // }
+    try {
+      const key = await arweave.wallets.generate();
+      const address = await arweave.wallets.jwkToAddress(key);
+      this.walletAddress = address;
+      this.generatedWallet = key;
+      this.authMethod = "QuickWallet";
+    } catch (error) {
+      console.warn("Quick wallet connection failed:", error);
+      throw error;
+    }
   }
 
   async sendMessageToArweave(tags) {

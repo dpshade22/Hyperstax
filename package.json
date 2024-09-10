@@ -4,16 +4,18 @@
   "type": "module",
   "scripts": {
     "build": "bun run build.js",
-    "dev": "bun run dev.js",
-    "postinstall": "patch-package"
+    "dev": "bun run dev.js"
   },
   "dependencies": {
+    "@othent/kms": "^1.0.8",
     "@permaweb/aoconnect": "^0.0.59",
     "ar-gql": "^2.0.0",
-    "@othent/kms": "^1.0.8",
+    "arweave": "latest",
+    "arweavekit": "^1.5.1",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.0",
-    "quick-wallet": "^0.3.0"
+    "quick-wallet": "^0.3.0",
+    "warp-arbundles": "^1.0.4"
   },
   "devDependencies": {
     "@types/bun": "latest"
