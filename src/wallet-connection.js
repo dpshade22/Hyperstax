@@ -8,6 +8,7 @@ import { arGql } from "ar-gql";
 import { ArConnect } from "arweavekit/auth";
 import * as othent from "@othent/kms";
 import { QuickWallet } from "quick-wallet";
+import Arweave from 'arweave';
 
 // const createDataItemSignerJWK = (wallet) => {
 //   const signer = async ({ data, tags, target, anchor }) => {

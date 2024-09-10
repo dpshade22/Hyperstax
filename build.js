@@ -43,16 +43,36 @@ try {
       {
         name: "node-polyfills",
         setup(build) {
-          build.onResolve({ filter: /^(buffer|crypto)$/ }, (args) => {
-            return { path: args.path, namespace: "node-polyfill" };
+          build.onResolve({ filter: /^(buffer|crypto|path)$/ }, (args) => {
+            return { path: require.resolve(args.path), namespace: "node-polyfill" };
           });
+
           build.onLoad({ filter: /.*/, namespace: "node-polyfill" }, (args) => {
-            if (args.path === "buffer") {
+            if (args.path === require.resolve("buffer")) {
               return { contents: `export * from "buffer/"` };
             }
-            if (args.path === "crypto") {
+            if (args.path === require.resolve("crypto")) {
               return { contents: `export * from "crypto-browserify"` };
             }
+            if (args.path === require.resolve("path")) {
+              return { contents: `export * from "path-browserify"` };
+            }
+          });
+        },
+      },
+      {
+        name: "commonjs",
+        setup(build) {
+          build.onResolve({ filter: /^arweave$/ }, (args) => {
+            return { path: require.resolve('arweave/web'), namespace: 'commonjs' };
+          });
+
+          build.onLoad({ filter: /.*/, namespace: 'commonjs' }, async (args) => {
+            const contents = await Bun.file(args.path).text();
+            return {
+              contents,
+              loader: 'js',
+            };
           });
         },
       },
