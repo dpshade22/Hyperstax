@@ -4,7 +4,7 @@ import { join, resolve } from "path";
 
 const rootDir = resolve(process.cwd());
 
-const buildProcess = spawn("bun", ["run", "build.js"], {
+const buildProcess = spawn("npx", ["webpack", "--config", "webpack.config.mjs"], {
   stdio: "inherit",
 });
 
@@ -59,6 +59,6 @@ function startServer() {
   console.log(`Watching for changes in: ${srcDir}`);
   watch(srcDir, { recursive: true }, (event, filename) => {
     console.log(`File ${filename} changed. Rebuilding...`);
-    spawn("bun", ["run", "build.js"], { stdio: "inherit" });
+    spawn("npx", ["webpack", "--config", "webpack.config.mjs"], { stdio: "inherit" });
   });
 }

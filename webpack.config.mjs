@@ -13,50 +13,50 @@ const rootDir = path.resolve(__dirname);
 
 const distDir = path.join(rootDir, 'dist');
 if (fs.existsSync(distDir)) {
-    fs.rmSync(distDir, { recursive: true, force: true });
+  fs.rmSync(distDir, { recursive: true, force: true });
 }
 fs.mkdirSync(distDir, { recursive: true });
 
 export default {
-    entry: path.join(rootDir, 'src/index.js'),
-    output: {
-        path: distDir,
-        filename: 'bundle.js',
-        libraryTarget: 'module',
+  entry: path.join(rootDir, 'src/index.js'),
+  output: {
+    path: distDir,
+    filename: 'bundle.js',
+    libraryTarget: 'module',
+  },
+  mode: 'development',
+  target: 'web',
+  experiments: {
+    outputModule: true,
+  },
+  resolve: {
+    fallback: {
+      buffer: 'buffer/',
+      crypto: 'crypto-browserify',
+      path: 'path-browserify',
     },
-    mode: 'development',
-    target: 'web',
-    experiments: {
-        outputModule: true,
-    },
-    resolve: {
-        fallback: {
-            buffer: 'buffer/',
-            crypto: 'crypto-browserify',
-            path: 'path-browserify',
+  },
+  plugins: [
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'src/index.html', to: 'index.html' },
+        { from: 'src/styles.css', to: 'styles.css' },
+      ],
+    }),
+    new NodePolyfillPlugin(),
+  ],
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env'],
+          },
         },
-    },
-    plugins: [
-        new CopyWebpackPlugin({
-            patterns: [
-                { from: 'src/index.html', to: 'index.html' },
-                { from: 'src/styles.css', to: 'styles.css' },
-            ],
-        }),
-        new NodePolyfillPlugin(),
+      },
     ],
-    module: {
-        rules: [
-            {
-                test: /\.js$/,
-                exclude: /node_modules/,
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        presets: ['@babel/preset-env'],
-                    },
-                },
-            },
-        ],
-    },
+  },
 };
