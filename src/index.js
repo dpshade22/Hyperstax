@@ -6,6 +6,8 @@ import {
   getLeaderboard,
 } from "./arweave-helpers.js";
 
+import { PixelatedButton } from "./pixelated-button.js";
+
 document.addEventListener("DOMContentLoaded", () => {
   const homepage = document.getElementById("homepage");
   const gameContainer = document.getElementById("gameContainer");
@@ -18,7 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const letsPlayBtn = document.getElementById("letsPlay");
   const showLeaderboardBtn = document.getElementById("showLeaderboard");
   const backToMenuBtn = document.getElementById("backToMenu");
-  const leaderboardList = document.getElementById("leaderboardList");
   const walletConnection = document.querySelector("arweave-wallet-connection");
   const gameBoard = document.getElementById("game-board");
   const scoreDisplay = document.getElementById("score");
@@ -26,20 +27,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const downBtn = document.getElementById("downBtn");
   const rightBtn = document.getElementById("rightBtn");
   const backToMenuFromModalBtn = document.getElementById("backToMenuFromModal");
-  const gameOverModal = document.getElementById("gameOverModal");
   const finalScoreElement = document.getElementById("finalScore");
   const highScoreMessageElement = document.getElementById("highScoreMessage");
   const playAgainBtn = document.getElementById("playAgainBtn");
   const loadingIndicator = document.getElementById("loadingIndicator");
   const modalContent = document.querySelector(".modal-content");
-  const gameTitle = document.querySelector(".game-title");
 
   function scrollToBottom() {
-    if (window.innerWidth <= 768) {
-      // Check if it's a mobile device
-      const gameBoard = document.getElementById("game-board");
-      gameBoard.scrollTop = gameBoard.scrollHeight;
-    }
+    // if (window.innerWidth <= 768) {
+    //   // Check if it's a mobile device
+    //   const gameBoard = document.getElementById("game-board");
+    //   gameBoard.scrollTop = gameBoard.scrollHeight;
+    // }
   }
 
   function showModalLoading() {
@@ -52,16 +51,12 @@ document.addEventListener("DOMContentLoaded", () => {
     modalContent.classList.remove("loading");
   }
 
-  function showModal() {
-    const modal = document.getElementById("gameOverModal");
-    modal.style.display = "flex";
-    modal.classList.add("active");
-  }
-
   function hideModal() {
     const modal = document.getElementById("gameOverModal");
-    modal.style.display = "none";
-    modal.classList.remove("active");
+    modal.style.opacity = "0";
+    setTimeout(() => {
+      modal.style.display = "none";
+    }, 1000); // Wait for the fade-out transition to complete
   }
 
   function showLoading() {
@@ -194,7 +189,8 @@ document.addEventListener("DOMContentLoaded", () => {
   backToMenuBtn.addEventListener("click", () => {
     leaderboardScreen.style.display = "none";
     menuScreen.style.display = "block";
-    gameTitle.textContent = "WordStack"; // Change title back to WordStack
+    const title = document.querySelector(".game-title");
+    title.style.display = "block";
   });
   backToMenuFromModalBtn.addEventListener("click", backToMenuFromModal);
 
@@ -242,6 +238,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const leaderboardData = await getLeaderboard(walletConnection, 10);
+      const title = document.querySelector(".game-title");
+      title.style.display = "none"; // Hide the title
       console.log("Leaderboard data:", leaderboardData);
 
       const leaderboardList = document.getElementById("leaderboardList");
@@ -273,7 +271,6 @@ document.addEventListener("DOMContentLoaded", () => {
         leaderboardList.innerHTML = "<p>No leaderboard data available.</p>";
       }
 
-      gameTitle.textContent = "Leaderboard";
       leaderboardScreen.style.display = "flex";
       menuScreen.style.display = "none";
     } catch (error) {
@@ -477,13 +474,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const cells = gameBoard.children;
       const isSpecial = length >= 4;
 
-      const lightGreen = "#90EE90";
-      const matchingYellow = "#FFFF8D";
-      const matchingPurple = "#B19CD9";
+      const darkRed = "#F0544F";
+      const darkYellow = "#FFB637";
+      const darkGreen = "#0B6E4F";
+      const special = "#CEEDDB";
 
       const colors = isSpecial
-        ? ["white", matchingYellow, lightGreen, matchingPurple]
-        : ["white", matchingYellow, lightGreen];
+        ? [darkRed, darkYellow, darkGreen, special]
+        : [darkRed, darkYellow, darkGreen];
 
       let colorIndex = 0;
       let flashCount = 0;
@@ -496,7 +494,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const index = cellY * BOARD_WIDTH + cellX;
           if (cells[index]) {
             cells[index].style.backgroundColor = colors[colorIndex];
-            cells[index].style.color = "black";
+            cells[index].style.color = "#ffffff"; // Keep text color white for contrast
           }
         }
 
@@ -511,8 +509,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const cellY = y + dy * i;
             const index = cellY * BOARD_WIDTH + cellX;
             if (cells[index]) {
-              cells[index].style.backgroundColor = "";
-              cells[index].style.color = "";
+              cells[index].style.backgroundColor = "#1f2225"; // Reset to original background color
+              cells[index].style.color = "#ffffff"; // Reset to original text color
             }
           }
           resolve();
@@ -527,7 +525,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const wordItems = document.querySelectorAll(".word-item");
     wordItems.forEach((item) => {
       if (item.textContent === word) {
-        item.style.backgroundColor = "#90EE90";
+        item.style.backgroundColor = "#0B6E4F";
         setTimeout(() => {
           item.style.backgroundColor = "";
         }, 1000);
@@ -568,7 +566,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateScore(wordLength) {
     let points = wordLength >= 4 ? wordLength * 5 : wordLength;
     score += points;
-    scoreDisplay.textContent = `Score: ${score}`;
+    scoreDisplay.textContent = `${score}`;
   }
 
   function moveLetter(direction) {
@@ -612,11 +610,39 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function backToMenuFromModal() {
-    gameOverModal.style.display = "none";
-    gameContainer.style.display = "none";
-    homepage.style.display = "flex";
-    menuScreen.style.display = "block";
-    updateUserInfo();
+    hideModal();
+    const gameContainer = document.getElementById("gameContainer");
+    const homepage = document.getElementById("homepage");
+    const menuScreen = document.getElementById("menuScreen");
+    const title = document.querySelector(".game-title");
+
+    // Fade out game container
+    gameContainer.style.opacity = "0";
+    gameContainer.style.transition = "opacity 1s ease";
+
+    setTimeout(() => {
+      gameContainer.style.display = "none";
+      gameContainer.classList.remove("blur-background");
+
+      // Prepare homepage and menu screen
+      homepage.style.opacity = "0";
+      homepage.style.display = "flex";
+      menuScreen.style.display = "block";
+      title.style.display = "block"; // Show the title
+
+      // Trigger reflow
+      void homepage.offsetWidth;
+
+      // Fade in homepage
+      homepage.style.transition = "opacity 0.5s ease";
+      homepage.style.opacity = "1";
+
+      updateUserInfo();
+
+      // Reset game container styles for next game
+      gameContainer.style.transition = "";
+      gameContainer.style.opacity = "1";
+    }, 500); // This should match the transition duration
   }
 
   async function endGame() {
@@ -626,15 +652,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (isProcessingWords) await processFoundWords(wordsToProcess);
 
-    finalScoreElement.textContent = `Your score: ${score}`;
+    // Show game over screen with fade-in
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    gameOverScreen.style.display = "flex";
+    document.getElementById("gameContainer").classList.add("blur-background");
 
-    // Immediately show the game over modal
-    highScoreMessageElement.textContent = "Checking high score...";
-    document.getElementById("previousHighScore").textContent = "";
-    showModal();
-    showModalLoading();
+    // Trigger reflow to ensure the transition applies
+    void gameOverScreen.offsetWidth;
+    gameOverScreen.style.opacity = "1";
 
+    // Wait for 4 seconds (1s fade-in + 3s display time) before transitioning to modal
+    setTimeout(() => {
+      // Fade out game over screen and score display
+      gameOverScreen.style.opacity = "0";
+
+      // After fade-out, show modal
+      setTimeout(() => {
+        gameOverScreen.style.display = "none";
+        showModal();
+      }, 1000);
+    }, 4000);
+  }
+
+  function showModal() {
+    const modal = document.getElementById("gameOverModal");
+    modal.style.display = "flex";
+    modal.style.opacity = "1";
+
+    updateFinalScore();
+  }
+
+  async function updateFinalScore() {
     try {
+      showModalLoading();
+
       // Perform dry run to get user data including current max score
       const dryRunResult = await dryRunGetUserData(
         walletConnection,
@@ -658,12 +709,16 @@ document.addEventListener("DOMContentLoaded", () => {
           `Previous high score: ${currentMaxScore}`;
       } else if (score === currentMaxScore) {
         highScoreMessageElement.textContent = "You matched your high score!";
+        document.getElementById("previousHighScore").textContent =
+          `High score: ${currentMaxScore}`;
       } else {
         highScoreMessageElement.textContent =
           "Not quite a high score this time.";
         document.getElementById("previousHighScore").textContent =
           `Your high score: ${currentMaxScore}`;
       }
+
+      finalScoreElement.textContent = `Score: ${score}`;
     } catch (error) {
       console.error("Error checking/updating max score:", error);
       highScoreMessageElement.textContent = "Failed to check high score.";
@@ -674,7 +729,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function clearGameState() {
     // Reset UI
-    scoreDisplay.textContent = `Score: 0`;
+    scoreDisplay.textContent = `0`;
 
     // Clear the game board display
     gameBoard.innerHTML = "";
@@ -691,6 +746,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function resetGame() {
     hideModal();
+    document
+      .getElementById("gameContainer")
+      .classList.remove("blur-background");
     clearGameState();
 
     // Clear any existing game loop
@@ -712,8 +770,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("keydown", handleKeyPress);
     window.addEventListener("resize", resizeBoard);
 
-    // Make sure the game container is visible
+    // Make sure the game container is visible and not blurred
     gameContainer.style.display = "flex";
+    gameContainer.classList.remove("blur-background");
 
     updateUserInfo();
   }

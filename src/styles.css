@@ -1,12 +1,42 @@
+@font-face {
+    font-family: "PPNeueBit 2";
+    src:
+        url("fonts/PPNeueBit-Regular.woff") format("woff"),
+        url("fonts/PPNeueBit-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "PPNeueBit 2";
+    src:
+        url("fonts/PPNeueBit-Bold.woff") format("woff"),
+        url("fonts/PPNeueBit-Bold.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+}
+
 /* Global Styles */
+html,
 body {
-    font-family: "Courier New", monospace;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+body,
+button,
+input {
+    font-family: "PPNeueBit 2";
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
     margin: 0;
-    background-color: #f0f0f0;
+    overflow-x: hidden;
+    background-color: #1f2225;
+    color: #ffffff;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -19,74 +49,30 @@ body {
     touch-action: manipulation;
 }
 
+/* User Info */
 .user-info {
     position: fixed;
-    top: 10px;
-    right: 10px;
-    background-color: rgb(162 162 162 / 80%);
+    top: 6px;
+    left: 6px;
     color: white;
-    padding: 3px 6px;
+    padding: 5px 10px;
     border-radius: 5px;
-    font-size: 14px;
-    z-index: 1000;
+    font-size: 18px;
 }
 
-/* Pixelated Button */
-.pixelated-button {
-    font-family: "Courier New", monospace;
-    font-size: 2vh;
+/* Score Display */
+#score {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    font-size: 6vw;
+}
+
+.score-display {
+    font-size: 48px;
     font-weight: bold;
-    padding: 15px 30px;
-    background-color: #4a4a4a;
-    color: white;
-    border: none;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    image-rendering: pixelated;
-    border-radius: 15px;
-}
-
-.pixelated-button::before,
-.pixelated-button::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-size: 51% 51%;
-    background-repeat: no-repeat;
-    z-index: -1;
-}
-
-.pixelated-button::before {
-    background:
-        linear-gradient(45deg, transparent 15px, #4a4a4a 0) bottom left,
-        linear-gradient(-45deg, transparent 15px, #4a4a4a 0) bottom right,
-        linear-gradient(135deg, transparent 15px, #4a4a4a 0) top left,
-        linear-gradient(-135deg, transparent 15px, #4a4a4a 0) top right;
-}
-
-.pixelated-button::after {
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    background:
-        linear-gradient(45deg, transparent 15px, white 0) bottom left,
-        linear-gradient(-45deg, transparent 15px, white 0) bottom right,
-        linear-gradient(135deg, transparent 15px, white 0) top left,
-        linear-gradient(-135deg, transparent 15px, white 0) top right;
-    z-index: -2;
-}
-
-.pixelated-button:hover {
-    background-color: #666;
-}
-
-.pixelated-button:active {
-    background-color: #333;
+    color: #232323;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Game Container */
@@ -94,10 +80,18 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
-    max-width: 500px;
-    height: 90vh;
+    width: 100vw;
+    height: 100vh;
+    max-width: 600px;
     margin: 0 auto;
+    padding: 10px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+#gameContainer,
+#homepage {
+    transition: opacity 0.5s ease;
 }
 
 /* Game Board */
@@ -105,22 +99,23 @@ body {
     display: grid;
     gap: 3px;
     width: 100%;
-    height: 90%;
-    background-color: #888;
-    border: 5px solid #888;
+    flex-grow: 1;
+    background-color: #373e44;
+    border: 5px solid #373e44;
     padding: 3px;
     image-rendering: pixelated;
+    overflow: hidden;
 }
 
 /* Cell Styles */
 .cell {
-    background-color: white;
+    background-color: #1f2225;
     display: flex;
     justify-content: center;
     align-items: center;
     font-weight: bold;
-    font-size: 2vh;
-    color: #000;
+    font-size: 5vh;
+    color: #ffffff;
     box-sizing: border-box;
     position: relative;
     overflow: hidden;
@@ -132,7 +127,7 @@ body {
     position: absolute;
     width: 5px;
     height: 5px;
-    background-color: #888;
+    background-color: #373e44;
     z-index: 1;
 }
 
@@ -150,22 +145,34 @@ body {
 #controls {
     display: flex;
     justify-content: center;
-    margin-top: 2vh;
+    margin: 0 1rem;
+    max-width: 600px;
 }
 
-#controls button {
-    font-size: 3vh;
+#controls img {
+    width: 33vw;
+    height: auto;
     margin: 0 1vw;
-    padding: 1vh 2vw;
-    background-color: #4a4a4a;
-    color: white;
-    border: none;
     cursor: pointer;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    transition: transform 0.1s ease;
+    object-fit: none;
+    object-position: center;
+}
+
+#leftBtn {
+    object-position: -35px center;
+}
+
+#downBtn {
+    object-position: -35px center;
+}
+
+#rightBtn {
+    object-position: -35px center;
+}
+
+#controls img:active {
+    transform: scale(0.95);
 }
 
 /* Word List */
@@ -173,11 +180,10 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-    font-size: 1.2em;
+    gap: 5px;
+    margin-bottom: 5px;
+    font-size: 1em;
     position: relative;
-    padding-top: 15px;
     width: 100%;
 }
 
@@ -186,13 +192,13 @@ body {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 5px;
+    gap: 2px;
     width: 100%;
 }
 
 #jackpot-words {
+    margin-top: 2rem;
     position: relative;
-    padding-left: 25px;
 }
 
 #jackpot-words::before {
@@ -201,36 +207,21 @@ body {
     margin-right: 0.5rem;
     top: 20%;
     font-family: "Courier New", monospace;
-    font-size: 0.8em;
-    color: #ffa500; /* Orange color */
-}
-
-#jackpot-words::after {
-    content: "";
-    position: absolute;
-    top: 36px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    height: 2px;
-    margin-top: 0.5rem;
-    background-color: #ccc;
+    font-size: 0.7em;
+    color: #ffa500;
 }
 
 .word-item {
-    background-color: #f0f0f0;
-    padding: 5px 10px;
-    border-radius: 5px;
+    background-color: #1f2225;
+    padding: 2px 5px;
     border: 1px solid #ccc;
     display: inline-block;
-    margin: 2px;
-    font-size: 1em; /* Maintain original font size */
+    margin: 1px;
+    font-size: 2vw;
 }
 
 .word-item.jackpot-word {
-    font-weight: bold;
-    border: 2px solid #ffa500;
-    background-color: #fff5e6;
+    background-color: #ffa500;
 }
 
 /* Wallet Connection Button */
@@ -310,6 +301,7 @@ arweave-wallet-connection::part(button):active {
 }
 
 #homepage h1 {
+    color: #ffffff;
     margin-bottom: 30px;
     font-size: 4vh;
 }
@@ -339,11 +331,11 @@ arweave-wallet-connection::part(button):active {
 
 #usernameInput {
     width: 100%;
+    height: 36px;
     padding: 12px;
     margin-bottom: 20px;
     font-size: 16px;
     border: 2px solid #4a4a4a;
-    border-radius: 5px;
     box-sizing: border-box;
 }
 
@@ -363,8 +355,9 @@ arweave-wallet-connection::part(button):active {
 #leaderboardScreen {
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    width: 100%;
+    height: 90vh;
+    width: 100vw;
+    max-width: 600px;
     max-width: none;
     padding-top: 20px;
 }
@@ -382,8 +375,7 @@ arweave-wallet-connection::part(button):active {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
-    font-family: "Courier New", monospace;
-    font-size: 18px;
+    font-size: 34px;
 }
 
 .leaderboard-item .place {
@@ -421,35 +413,136 @@ arweave-wallet-connection::part(button):active {
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
-}
-
-.modal.active {
-    display: flex;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: rgba(0, 0, 0, 0.9);
     justify-content: center;
     align-items: center;
 }
 
 .modal-content {
-    position: relative;
-    background-color: #f0f0f0;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    max-width: 500px;
+    font-size: 24px;
     text-align: center;
-    border-radius: 10px;
-}
-
-#playAgainBtn,
-#backToMenuFromModal {
-    margin-top: 20px;
+    background-color: #1f2225;
     width: 100%;
+    height: 100%;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
-#backToMenuFromModal {
-    margin-top: 10px;
+h3 {
+    font-family:
+        Plus Jakarta Sans,
+        sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 120%;
+    margin-bottom: 24px;
+}
+
+.connect-option {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    margin-bottom: 16px;
+}
+
+.connect-option:hover {
+    background: #efefef;
+    cursor: pointer;
+}
+
+.connect-option-icon {
+    flex: 0 0 56px;
+    height: 56px;
+    border-radius: 12px;
+    background-size: 30px 30px;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.connect-option-detail {
+    margin-left: 16px;
+}
+
+.connect-option-name {
+    font-family:
+        Plus Jakarta Sans,
+        sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 2px;
+}
+
+.connect-option-desc {
+    font-family:
+        Plus Jakarta Sans,
+        sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.2;
+}
+
+.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* End Game */
+.game-over-screen {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 1s ease;
+}
+
+.game-over-image {
+    max-width: 80%;
+    max-height: 80%;
+}
+
+.blur-background {
+    filter: blur(5px);
+    transition: filter 0.5s ease;
+}
+
+.modal {
+    opacity: 0;
+    transition: opacity 1s ease;
+}
+
+#finalScore {
+    font-size: 32px;
+    margin: 1rem 0;
+}
+
+#finalScoreDisplay {
+    font-family: "PPNeueBit 2", sans-serif;
+    transition: opacity 1s ease;
+}
+
+#previousHighScore {
+    font-size: 24px;
+    opacity: 0.6;
+    margin: 0 0 3.5rem 0;
+}
+
+#highScoreMessage {
+    font-size: 32px;
+    margin: 2rem 0;
 }
 
 /* Loading Indicator */
@@ -466,7 +559,7 @@ arweave-wallet-connection::part(button):active {
     display: inline-block;
     width: 10px;
     height: 10px;
-    background-color: #4a4a4a;
+    background-color: #ffffff;
     margin: 0 5px;
     animation: pixelBounce 1s infinite steps(2);
 }
@@ -495,7 +588,6 @@ arweave-wallet-connection::part(button):active {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    background-color: rgba(240, 240, 240, 0.8);
     border-radius: 10px;
     width: 100%;
     height: 100%;
@@ -503,6 +595,16 @@ arweave-wallet-connection::part(button):active {
     justify-content: center;
     align-items: center;
     border-radius: 10px;
+}
+
+.modal-content h2 {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.modal-content p {
+    font-size: 24px;
+    margin-bottom: 15px;
 }
 
 .modal-content > *:not(#modalLoadingIndicator) {
@@ -520,73 +622,88 @@ arweave-wallet-connection::part(button):active {
 
 /* Mobile Styles */
 @media (max-width: 768px) {
-    #gameContainer {
-        width: 95vw;
-        height: 95vh;
+    body {
+        width: 100vw;
+        height: 90vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #score {
+        font-size: 14vw;
+        top: 5px;
+        right: 5px;
+    }
+
+    #word-list {
+        font-size: 0.9em;
+        margin-bottom: 5px;
+        flex-shrink: 0;
+    }
+
+    #jackpot-words,
+    #regular-words {
+        gap: 2px;
+    }
+
+    .word-item {
+        font-size: 0.8em;
+        padding: 1px 3px;
     }
 
     #game-board {
-        height: 80%;
+        height: 0;
+        flex-grow: 1;
+        width: 100%;
     }
 
     .cell {
-        font-size: 6vw;
+        font-size: 9vw;
     }
 
     #controls {
         flex-direction: row;
         justify-content: space-between;
+        margin-top: 10px;
+        padding-bottom: 10px;
+        flex-shrink: 0;
     }
 
-    #controls button {
-        font-size: 5vw;
-        padding: 2vh 4vw;
-        width: 30vw;
-        margin: 0;
-        flex-basis: 30%;
+    #controls img {
+        width: 35vw;
+        height: auto;
+        max-width: 120px;
     }
 
-    #word-list {
-        padding-top: 10px;
+    /* Ensure buttons are always visible */
+    body::after {
+        content: "";
+        display: block;
+        height: env(safe-area-inset-bottom, 20px);
     }
 
-    #jackpot-words {
-        padding-bottom: 10px; /* Adjust space for the divider on mobile */
-        padding-left: 20px; /* Adjust space for the x5 indicator on mobile */
+    #jackpot-words,
+    #regular-words {
+        gap: 2px;
     }
 
     #jackpot-words::before {
-        font-size: 0.8em;
+        font-size: 4vw;
     }
 
     .word-item {
-        padding: 3px 6px;
-        font-size: 0.9em; /* Slightly smaller on mobile, but not too small */
-    }
-
-    .pixelated-button {
         font-size: 5vw;
-        padding: 20px 40px;
-        width: 90%;
-    }
-
-    arweave-wallet-connection::part(button) {
-        font-size: 5vw;
-        padding: 20px 40px;
-        width: 100%;
+        padding: 2px 5px;
     }
 
     #homepage h1 {
+        margin-top: 0;
         padding: 1rem;
-        font-size: 8vw;
+        font-size: 16vw;
     }
 
-    #connectWalletScreen,
-    #usernameScreen,
-    #menuScreen,
     #leaderboardScreen {
-        width: 90%;
-        max-width: none;
+        height: 80vh;
     }
 
     #usernameInput {
