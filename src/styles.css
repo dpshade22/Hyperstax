@@ -220,6 +220,10 @@ input {
     font-size: 2vw;
 }
 
+.word-item.jackpot-word {
+    background-color: #ffa500;
+}
+
 /* Wallet Connection Button */
 arweave-wallet-connection {
     display: block;
@@ -681,6 +685,10 @@ h3 {
     #jackpot-words,
     #regular-words {
         gap: 2px;
+    }
+
+    #jackpot-words::before {
+        font-size: 4vw;
     }
 
     .word-item {
