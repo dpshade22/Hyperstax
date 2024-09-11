@@ -672,58 +672,20 @@ document.addEventListener("DOMContentLoaded", () => {
         showModal();
       }, 1000);
     }, 4000);
-
-    try {
-      // Perform dry run to get user data including current max score
-      const dryRunResult = await dryRunGetUserData(
-        walletConnection,
-        walletConnection.walletAddress,
-      );
-
-      let currentMaxScore = 0;
-      if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
-        const userData = JSON.parse(dryRunResult.Messages[0].Data);
-        currentMaxScore = userData.maxScore || 0;
-      }
-
-      if (score > currentMaxScore) {
-        await updateMaxScore(
-          walletConnection,
-          walletConnection.walletAddress,
-          score,
-        );
-        highScoreMessageElement.textContent = "New High Score!";
-        document.getElementById("previousHighScore").textContent =
-          `Previous high score: ${currentMaxScore}`;
-      } else if (score === currentMaxScore) {
-        highScoreMessageElement.textContent = "You matched your high score!";
-      } else {
-        highScoreMessageElement.textContent =
-          "Not quite a high score this time.";
-        document.getElementById("previousHighScore").textContent =
-          `Your high score: ${currentMaxScore}`;
-      }
-    } catch (error) {
-      console.error("Error checking/updating max score:", error);
-      highScoreMessageElement.textContent = "Failed to check high score.";
-    }
   }
 
   function showModal() {
-    finalScoreElement.textContent = `score: ${score}`;
-    highScoreMessageElement.textContent = "Checking high score...";
-    document.getElementById("previousHighScore").textContent = "";
-
     const modal = document.getElementById("gameOverModal");
     modal.style.display = "flex";
     modal.style.opacity = "1";
 
-    showModalLoading();
     updateFinalScore();
   }
 
   async function updateFinalScore() {
     try {
+      showModalLoading();
+
       // Perform dry run to get user data including current max score
       const dryRunResult = await dryRunGetUserData(
         walletConnection,
@@ -747,12 +709,16 @@ document.addEventListener("DOMContentLoaded", () => {
           `Previous high score: ${currentMaxScore}`;
       } else if (score === currentMaxScore) {
         highScoreMessageElement.textContent = "You matched your high score!";
+        document.getElementById("previousHighScore").textContent =
+          `High score: ${currentMaxScore}`;
       } else {
         highScoreMessageElement.textContent =
           "Not quite a high score this time.";
         document.getElementById("previousHighScore").textContent =
           `Your high score: ${currentMaxScore}`;
       }
+
+      finalScoreElement.textContent = `Score: ${score}`;
     } catch (error) {
       console.error("Error checking/updating max score:", error);
       highScoreMessageElement.textContent = "Failed to check high score.";
