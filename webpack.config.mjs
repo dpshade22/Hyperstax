@@ -45,6 +45,7 @@ export default {
       patterns: [
         { from: "src/index.html", to: "index.html" },
         { from: "src/styles.css", to: "styles.css" },
+        { from: "src/assets", to: "assets" },
         { from: "src/fonts", to: "fonts" },
       ],
     }),

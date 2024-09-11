@@ -10,6 +10,11 @@ class PixelatedButton extends HTMLElement {
 
   render() {
     const buttonText = this.getAttribute("text") || "Button";
+    const isInverted = this.hasAttribute("inverted");
+
+    const backgroundColor = isInverted ? "#1F2225" : "#ffffff";
+    const textColor = isInverted ? "#ffffff" : "#1F2225";
+
     this.shadowRoot.innerHTML = `
       <style>
         @font-face {
@@ -32,8 +37,8 @@ class PixelatedButton extends HTMLElement {
           font-family: 'PPNeueBit 2', monospace;
           font-size: 32px;
           font-weight: bold;
-          color: #e4e4e4;
-          background-color: #232323;
+          color: ${textColor};
+          background-color: ${backgroundColor};
           border: none;
           padding: 12px 20px;
           text-align: center;
@@ -65,7 +70,7 @@ class PixelatedButton extends HTMLElement {
         .pixelated-container .back::after {
           content: '';
           position: absolute;
-          background-color: #232323;
+          background-color: ${backgroundColor};
         }
 
         .pixelated-container .front::before,

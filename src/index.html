@@ -53,22 +53,27 @@
             </div>
         </div>
         <div id="gameContainer" style="display: none">
-            <h1>WordStack</h1>
-            <div id="score">Score: 0</div>
+            <div id="score">0</div>
             <div id="word-list"></div>
             <div id="game-board"></div>
             <div id="controls">
-                <button id="leftBtn">◀</button>
-                <button id="downBtn">▼</button>
-                <button id="rightBtn">▶</button>
+                <img id="leftBtn" src="assets/left-button.svg" alt="Left" />
+                <img id="downBtn" src="assets/down-button.svg" alt="Down" />
+                <img id="rightBtn" src="assets/right-button.svg" alt="Right" />
             </div>
+        </div>
+        <div id="gameOverScreen" class="game-over-screen">
+            <img
+                src="assets/game-over.svg"
+                alt="Game Over"
+                class="game-over-image"
+            />
         </div>
         <div id="gameOverModal" class="modal">
             <div class="modal-content">
-                <h2>Game Over</h2>
+                <p id="highScoreMessage"></p>
                 <p id="finalScore"></p>
                 <p id="previousHighScore"></p>
-                <p id="highScoreMessage"></p>
                 <div id="modalLoadingIndicator" class="loading-indicator">
                     <div class="pixel"></div>
                     <div class="pixel"></div>
