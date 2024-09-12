@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const BOARD_HEIGHT = 10;
   const LETTERS = "AAAEEIOOPRSWVLLMMCUU$";
   const INITIAL_GAME_SPEED = 700;
-  const SPEED_INCREASE_FACTOR = 0.9;
+  const SPEED_INCREASE_FACTOR = 0.85;
   const LETTERS_PER_SPEED_INCREASE = 3;
 
   // Game state variables
@@ -126,50 +126,36 @@ document.addEventListener("DOMContentLoaded", () => {
   const emailInput = document.getElementById("emailInput");
 
   function validateInputs() {
-    console.log("validateInputs function called");
 
     const username = usernameInput.value.trim();
     const email = emailInput.value.trim();
-    console.log("Username:", username);
-    console.log("Email:", email);
 
     const usernameRequired =
       document.getElementById("usernameField").style.display !== "none";
     const emailRequired =
       document.getElementById("emailField").style.display !== "none";
-    console.log("Username required:", usernameRequired);
-    console.log("Email required:", emailRequired);
 
     let isValid = true;
 
     if (usernameRequired) {
-      console.log("Validating username");
       if (username) {
-        console.log("Username is valid");
         usernameInput.classList.remove("invalid");
       } else {
-        console.log("Username is invalid");
         usernameInput.classList.add("invalid");
         isValid = false;
       }
     }
 
     if (emailRequired) {
-      console.log("Validating email");
       if (email && isValidEmail(email)) {
-        console.log("Email is valid");
         emailInput.classList.remove("invalid");
       } else {
-        console.log("Email is invalid");
         emailInput.classList.add("invalid");
         isValid = false;
       }
     }
 
-    console.log("Is form valid:", isValid);
-    console.log("Submit button before:", submitSignupBtn.disabled);
     submitSignupBtn.disabled = !isValid;
-    console.log("Submit button after:", submitSignupBtn.disabled);
 
     return isValid;
   }
@@ -555,7 +541,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function increaseSpeed() {
     currentGameSpeed *= SPEED_INCREASE_FACTOR;
-    currentGameSpeed = Math.max(currentGameSpeed, 300);
+    currentGameSpeed = Math.max(currentGameSpeed, 250);
     clearInterval(gameLoop);
     gameLoop = setInterval(updateGame, currentGameSpeed);
   }
