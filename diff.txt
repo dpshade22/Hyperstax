@@ -1,0 +1,651 @@
+diff --git a/src/arweave-helpers.js b/src/arweave-helpers.js
+index 978da5c..4f5d495 100644
+--- a/src/arweave-helpers.js
++++ b/src/arweave-helpers.js
+@@ -20,11 +20,13 @@ export async function addUsername(walletConnection, walletAddress, username) {
+ 
+ // Helper function to update max score
+ export async function updateMaxScore(walletConnection, walletAddress, score) {
+-  return await walletConnection.sendMessageToArweave([
++  await walletConnection.sendMessageToArweave([
+     { name: "Action", value: "UpdateMaxScore" },
+     { name: "Wallet-Address", value: walletAddress },
+     { name: "Score", value: score.toString() },
+   ]);
++
++  await importScore(walletConnection, walletAddress, score);
+ }
+ 
+ // Helper function to get user data
+@@ -42,3 +44,21 @@ export async function getLeaderboard(walletConnection, limit = 10) {
+     { name: "Limit", value: limit.toString() },
+   ]);
+ }
++
++export async function importScore(walletConnection, walletAddress, score) {
++  try {
++    const result = await walletConnection.sendMessageToArweave(
++      [
++        { name: "Action", value: "ImportData" },
++        { name: "Method", value: "merge" },
++      ],
++      JSON.stringify({ [walletAddress]: score }),
++    );
++
++    console.log("Score imported successfully:", result);
++    return result;
++  } catch (error) {
++    console.error("Error importing score:", error);
++    throw error;
++  }
++}
+diff --git a/src/index.html b/src/index.html
+index 6b005f7..375e487 100644
+--- a/src/index.html
++++ b/src/index.html
+@@ -18,18 +18,29 @@
+             <div class="pixel"></div>
+         </div>
+         <div id="homepage">
+-            <h1 class="game-title">WordStack</h1>
+             <div id="connectWalletScreen">
++                <h1 class="game-title">WordStack</h1>
+                 <arweave-wallet-connection></arweave-wallet-connection>
+             </div>
+-            <div id="usernameScreen" style="display: none">
+-                <input
+-                    type="text"
+-                    id="usernameInput"
+-                    placeholder="Enter your username"
+-                />
++            <div id="signupScreen" style="display: none">
++                <h1 id="signupTitle"></h1>
++                <p id="signupMessage"></p>
++                <div id="usernameField">
++                    <input
++                        type="text"
++                        id="usernameInput"
++                        placeholder="Enter your username"
++                    />
++                </div>
++                <div id="emailField">
++                    <input
++                        type="email"
++                        id="emailInput"
++                        placeholder="Enter your email"
++                    />
++                </div>
+                 <pixelated-button
+-                    id="submitUsername"
++                    id="submitSignup"
+                     text="Submit"
+                 ></pixelated-button>
+             </div>
+diff --git a/src/index.js b/src/index.js
+index b4b44c9..e94456c 100644
+--- a/src/index.js
++++ b/src/index.js
+@@ -7,6 +7,11 @@ import {
+ } from "./arweave-helpers.js";
+ 
+ import { PixelatedButton } from "./pixelated-button.js";
++import {
++  checkWalletAssociation,
++  registerWallet,
++  createBazarProfile,
++} from "./signup.js";
+ 
+ document.addEventListener("DOMContentLoaded", () => {
+   const homepage = document.getElementById("homepage");
+@@ -16,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
+   const menuScreen = document.getElementById("menuScreen");
+   const leaderboardScreen = document.getElementById("leaderboardScreen");
+   const usernameInput = document.getElementById("usernameInput");
+-  const submitUsernameBtn = document.getElementById("submitUsername");
++  const submitSignupBtn = document.getElementById("submitSignup");
+   const letsPlayBtn = document.getElementById("letsPlay");
+   const showLeaderboardBtn = document.getElementById("showLeaderboard");
+   const backToMenuBtn = document.getElementById("backToMenu");
+@@ -51,6 +56,11 @@ document.addEventListener("DOMContentLoaded", () => {
+     modalContent.classList.remove("loading");
+   }
+ 
++  function isValidEmail(email) {
++    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
++    return emailRegex.test(email);
++  }
++
+   function hideModal() {
+     const modal = document.getElementById("gameOverModal");
+     modal.style.opacity = "0";
+@@ -111,6 +121,43 @@ document.addEventListener("DOMContentLoaded", () => {
+     [-1, -1],
+   ];
+ 
++  const emailInput = document.getElementById("emailInput");
++
++  function validateInputs() {
++    const username = usernameInput.value.trim();
++    const email = emailInput.value.trim();
++    const usernameRequired =
++      document.getElementById("usernameField").style.display !== "none";
++    const emailRequired =
++      document.getElementById("emailField").style.display !== "none";
++
++    let isValid = true;
++
++    if (usernameRequired) {
++      if (username) {
++        usernameInput.classList.remove("invalid");
++      } else {
++        usernameInput.classList.add("invalid");
++        isValid = false;
++      }
++    }
++
++    if (emailRequired) {
++      if (email && isValidEmail(email)) {
++        emailInput.classList.remove("invalid");
++      } else {
++        emailInput.classList.add("invalid");
++        isValid = false;
++      }
++    }
++
++    submitSignupBtn.disabled = !isValid;
++    return isValid;
++  }
++
++  usernameInput.addEventListener("input", validateInputs);
++  emailInput.addEventListener("input", validateInputs);
++
+   walletConnection.addEventListener("walletConnected", async (event) => {
+     showLoading();
+ 
+@@ -118,69 +165,112 @@ document.addEventListener("DOMContentLoaded", () => {
+     connectWalletScreen.style.display = "none";
+ 
+     try {
+-      // Add wallet address to Arweave
+-      await addWalletAddress(walletConnection, event.detail);
+-      console.log("Wallet address added to Arweave");
++      // Check if wallet is associated with an email
++      const isAssociated = await checkWalletAssociation(event.detail);
+ 
+-      // Timeout for 1.5 seconds
+-      await new Promise((resolve) => setTimeout(resolve, 1500));
++      // Perform dry run to get user data (including username)
++      const dryRunResult = await dryRunGetUserData(
++        walletConnection,
++        event.detail,
++      );
++      let userData = null;
++      if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
++        userData = JSON.parse(dryRunResult.Messages[0].Data);
++      }
+ 
+-      // Perform dry run to get user data
+-      const dryRunResult = await walletConnection.dryRunArweave([
+-        { name: "Action", value: "GetUserData" },
+-        { name: "Wallet-Address", value: walletConnection.walletAddress },
+-      ]);
++      if (isAssociated && userData && userData.username) {
++        // User has both email and username
++        currentUsername = userData.username;
++        console.log("Existing username found:", currentUsername);
++        console.log("Arweave Hub associated email found");
+ 
+-      if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
+-        const userData = JSON.parse(dryRunResult.Messages[0].Data);
+-        if (userData.username) {
+-          currentUsername = userData.username;
+-          console.log("Existing username found:", currentUsername);
+-          menuScreen.style.display = "block";
+-          updateUserInfo();
+-        } else {
+-          console.log("No existing username found");
+-          usernameScreen.style.display = "block";
+-        }
++        menuScreen.style.display = "block";
++        updateUserInfo();
++      } else if (!isAssociated && userData && userData.username) {
++        // User has username but no associated email
++        currentUsername = userData.username;
++        console.log("Username found, but no associated email");
++        showEmailOnlyScreen();
++      } else if (isAssociated && (!userData || !userData.username)) {
++        // User has email but no username
++        console.log("No existing username found");
++        showUsernameOnlyScreen();
+       } else {
++        // User has neither email nor username
+         console.log("No user data found");
+-        usernameScreen.style.display = "block";
++        showFullSignupScreen();
+       }
+     } catch (error) {
+       console.error("Error during wallet connection process:", error);
+       alert(
+         "An error occurred while setting up your account. Please try again.",
+       );
+-      usernameScreen.style.display = "block";
+     } finally {
+       hideLoading();
+     }
+   });
+ 
+-  submitUsernameBtn.addEventListener("click", async () => {
+-    currentUsername = usernameInput.value.trim();
+-
+-    if (currentUsername) {
++  // Update the submit username button event listener
++  submitSignupBtn.addEventListener("click", async () => {
++    if (validateInputs()) {
+       showLoading();
+ 
+       try {
+-        await addUsername(
+-          walletConnection,
+-          walletConnection.walletAddress,
+-          currentUsername,
+-        );
+-        console.log("Username added to Arweave");
+-        usernameScreen.style.display = "none";
++        const username = usernameInput.value.trim();
++        const email = emailInput.value.trim();
++
++        if (emailInput.style.display !== "none") {
++          // Register wallet with email
++          const success = await registerWallet(
++            walletConnection.walletAddress,
++            email,
++          );
++          if (!success) {
++            throw new Error("Failed to register wallet");
++          }
++          console.log("Wallet registered successfully");
++        }
++
++        if (usernameInput.style.display !== "none") {
++          // Create Bazar profile
++          const profile = {
++            DisplayName: username,
++            Username: username.toLowerCase().replace(/\s/g, "_"),
++            Description: "I played WordStack!",
++            CoverImage: null,
++            ProfileImage: null,
++          };
++
++          const createdProfile = await createBazarProfile(
++            walletConnection,
++            profile,
++          );
++
++          if (!createdProfile) {
++            throw new Error("Failed to create Bazar profile");
++          }
++          console.log("Bazar profile created successfully");
++
++          // Add username to WordStack Process
++          await addUsername(
++            walletConnection,
++            walletConnection.walletAddress,
++            username,
++          );
++          console.log("Username added to WordStack Process");
++
++          currentUsername = username;
++        }
++
++        document.getElementById("signupScreen").style.display = "none";
+         menuScreen.style.display = "block";
+-        updateUserInfo(); // Call this function here
++        updateUserInfo();
+       } catch (error) {
+-        console.error("Error adding username:", error);
+-        alert("Failed to set username. Please try again.");
++        console.error("Error during signup:", error);
++        alert("Failed to complete signup. Please try again.");
+       } finally {
+         hideLoading();
+       }
+-    } else {
+-      alert("Please enter a valid username.");
+     }
+   });
+ 
+@@ -222,6 +312,36 @@ document.addEventListener("DOMContentLoaded", () => {
+     }
+   }
+ 
++  function showEmailOnlyScreen() {
++    const signupScreen = document.getElementById("signupScreen");
++    signupScreen.style.display = "block";
++    document.getElementById("usernameField").style.display = "none";
++    document.getElementById("emailField").style.display = "block";
++    document.getElementById("signupTitle").textContent = "Almost there!";
++    document.getElementById("signupMessage").textContent =
++      "We just need your email to complete your account setup.";
++  }
++
++  function showUsernameOnlyScreen() {
++    const signupScreen = document.getElementById("signupScreen");
++    signupScreen.style.display = "block";
++    document.getElementById("usernameField").style.display = "block";
++    document.getElementById("emailField").style.display = "none";
++    document.getElementById("signupTitle").textContent = "Choose a Username";
++    document.getElementById("signupMessage").textContent =
++      "Please choose a username to complete your account setup.";
++  }
++
++  function showFullSignupScreen() {
++    const signupScreen = document.getElementById("signupScreen");
++    signupScreen.style.display = "block";
++    document.getElementById("usernameField").style.display = "block";
++    document.getElementById("emailField").style.display = "block";
++    document.getElementById("signupTitle").textContent = "Create Your Account";
++    document.getElementById("signupMessage").textContent =
++      "Please provide a username and email to set up your account.";
++  }
++
+   function updateUserInfo() {
+     const userInfoElement = document.getElementById("userInfo");
+     if (walletConnection.walletAddress && currentUsername) {
+@@ -240,7 +360,7 @@ document.addEventListener("DOMContentLoaded", () => {
+       const leaderboardData = await getLeaderboard(walletConnection, 10);
+       const title = document.querySelector(".game-title");
+       title.style.display = "none"; // Hide the title
+-      console.log("Leaderboard data:", leaderboardData);
++      console.log("Leaderboard data fetched successfully");
+ 
+       const leaderboardList = document.getElementById("leaderboardList");
+       leaderboardList.innerHTML = ""; // Clear previous entries
+@@ -691,6 +811,7 @@ document.addEventListener("DOMContentLoaded", () => {
+         walletConnection,
+         walletConnection.walletAddress,
+       );
++      console.log("User data fetched for score update");
+ 
+       let currentMaxScore = 0;
+       if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
+@@ -704,6 +825,7 @@ document.addEventListener("DOMContentLoaded", () => {
+           walletConnection.walletAddress,
+           score,
+         );
++        console.log("New high score updated");
+         highScoreMessageElement.textContent = "New High Score!";
+         document.getElementById("previousHighScore").textContent =
+           `Previous high score: ${currentMaxScore}`;
+diff --git a/src/pixelated-button.js b/src/pixelated-button.js
+index 1cb6ee2..fbd3354 100644
+--- a/src/pixelated-button.js
++++ b/src/pixelated-button.js
+@@ -8,6 +8,23 @@ class PixelatedButton extends HTMLElement {
+     this.render();
+   }
+ 
++  static get observedAttributes() {
++    return ["disabled"];
++  }
++
++  attributeChangedCallback(name, oldValue, newValue) {
++    if (name === "disabled") {
++      this.updateDisabledState();
++    }
++  }
++
++  updateDisabledState() {
++    const isDisabled = this.hasAttribute("disabled");
++    const button = this.shadowRoot.querySelector(".box");
++    button.style.opacity = isDisabled ? "0.5" : "1";
++    button.style.cursor = isDisabled ? "not-allowed" : "pointer";
++  }
++
+   render() {
+     const buttonText = this.getAttribute("text") || "Button";
+     const isInverted = this.hasAttribute("inverted");
+diff --git a/src/pixelated-input.js b/src/pixelated-input.js
+index 6a346d1..1dc946f 100644
+--- a/src/pixelated-input.js
++++ b/src/pixelated-input.js
+@@ -6,6 +6,7 @@ class PixelatedInput extends HTMLElement {
+ 
+   connectedCallback() {
+     this.render();
++    this.addEventListeners();
+   }
+ 
+   render() {
+@@ -46,6 +47,7 @@ class PixelatedInput extends HTMLElement {
+ 
+         .pixelated-container .box input {
+           width: 100%;
++          height: 100%;
+           padding: 0;
+           text-align: center;
+           background: transparent;
+@@ -62,6 +64,8 @@ class PixelatedInput extends HTMLElement {
+           font-weight: 700;
+           line-height: normal;
+           letter-spacing: -.32px;
++          position: relative;
++          z-index: 2;
+         }
+ 
+         .pixelated-container .box input::placeholder {
+@@ -71,6 +75,7 @@ class PixelatedInput extends HTMLElement {
+         .pixelated-container .front,
+         .pixelated-container .back {
+           display: block;
++          pointer-events: none;
+         }
+ 
+         .pixelated-container .front:before,
+@@ -124,6 +129,33 @@ class PixelatedInput extends HTMLElement {
+       </div>
+     `;
+   }
++
++  addEventListeners() {
++    const input = this.shadowRoot.querySelector("input");
++    const container = this.shadowRoot.querySelector(".pixelated-container");
++
++    input.addEventListener("input", (event) => {
++      this.value = event.target.value;
++      this.dispatchEvent(new CustomEvent("input", { detail: this.value }));
++    });
++
++    input.addEventListener("change", (event) => {
++      this.value = event.target.value;
++      this.dispatchEvent(new CustomEvent("change", { detail: this.value }));
++    });
++
++    container.addEventListener("click", () => {
++      input.focus();
++    });
++  }
++
++  get value() {
++    return this.shadowRoot.querySelector("input").value;
++  }
++
++  set value(newValue) {
++    this.shadowRoot.querySelector("input").value = newValue;
++  }
+ }
+ 
+ customElements.define("pixelated-input", PixelatedInput);
+diff --git a/src/styles.css b/src/styles.css
+index 6872f4f..447efd6 100644
+--- a/src/styles.css
++++ b/src/styles.css
+@@ -329,7 +329,8 @@ arweave-wallet-connection::part(button):active {
+     margin: 0 auto;
+ }
+ 
+-#usernameInput {
++#usernameInput,
++#emailInput {
+     width: 100%;
+     height: 36px;
+     padding: 12px;
+@@ -337,6 +338,38 @@ arweave-wallet-connection::part(button):active {
+     font-size: 16px;
+     border: 2px solid #4a4a4a;
+     box-sizing: border-box;
++    background-color: #e4e4e4;
++    color: #232323;
++    font-family:
++        "PPNeueBit",
++        -apple-system,
++        BlinkMacSystemFont,
++        Segoe UI,
++        Roboto,
++        Oxygen,
++        Ubuntu,
++        Cantarell,
++        Fira Sans,
++        Droid Sans,
++        Helvetica Neue,
++        sans-serif;
++    font-weight: 700;
++    transition: border-color 0.3s ease;
++}
++
++#usernameInput::placeholder,
++#emailInput::placeholder {
++    color: #888;
++}
++
++#usernameInput.invalid,
++#emailInput.invalid {
++    border-color: #ff0000;
++}
++
++pixelated-button[disabled] {
++    opacity: 0.5;
++    cursor: not-allowed;
+ }
+ 
+ #submitUsername {
+@@ -706,11 +739,6 @@ h3 {
+         height: 80vh;
+     }
+ 
+-    #usernameInput {
+-        font-size: 14px;
+-        padding: 10px;
+-    }
+-
+     #submitUsername {
+         font-size: 14px;
+         padding: 10px;
+diff --git a/src/wallet-connection.js b/src/wallet-connection.js
+index 8abc939..e55d045 100644
+--- a/src/wallet-connection.js
++++ b/src/wallet-connection.js
+@@ -3,6 +3,7 @@ import {
+   dryrun,
+   message,
+   result,
++  spawn,
+ } from "@permaweb/aoconnect";
+ import { arGql } from "ar-gql";
+ import { ArConnect } from "arweavekit/auth";
+@@ -284,6 +285,7 @@ class ArweaveWalletConnection extends HTMLElement {
+ 
+       if (this.walletAddress) {
+         console.log(`Wallet connected successfully: ${this.walletAddress}`);
++        console.log("Auth method:", this.authMethod);
+ 
+         switch (this.authMethod) {
+           case "Othent":
+@@ -294,11 +296,9 @@ class ArweaveWalletConnection extends HTMLElement {
+             this.signer = createDataItemSigner(this.generatedWallet);
+             break;
+           case "ArConnect":
+-            console.log(window.arweaveWallet);
+             this.signer = createDataItemSigner(window.arweaveWallet);
+             break;
+           case "QuickWallet":
+-            console.log(this.generatedWallet);
+             this.signer = createDataItemSigner(QuickWallet);
+             // this.signer = createDataItemSignerJWK(this.generatedWallet);
+             break;
+@@ -310,8 +310,6 @@ class ArweaveWalletConnection extends HTMLElement {
+           throw new Error("Failed to create signer");
+         }
+ 
+-        console.log("Signer created:", this.signer);
+-
+         this.dispatchEvent(
+           new CustomEvent("walletConnected", { detail: this.walletAddress }),
+         );
+@@ -411,9 +409,8 @@ class ArweaveWalletConnection extends HTMLElement {
+     }
+ 
+     try {
+-      console.log("PROCESS_ID:", PROCESS_ID);
+-      console.log("Tags:", tags);
+-      console.log("Signer:", this.signer);
++      console.log("Message sent to Arweave:");
++      console.log({ PROCESS_ID: PROCESS_ID, Tags: tags, Signer: this.signer });
+ 
+       const messageId = await message({
+         process: PROCESS_ID,
+@@ -429,14 +426,12 @@ class ArweaveWalletConnection extends HTMLElement {
+ 
+       console.log("Messages:", Messages);
+ 
+-      if (Error) console.error(Error);
+-      else
+-        console.log(
+-          `Sent Action: ${tags.find((tag) => tag.name === "Action").value}`,
+-        );
++      if (Error) console.error("Error in Arweave response:", Error);
++      else console.log("Arweave action completed successfully");
++
+       return { Messages, Error };
+     } catch (error) {
+-      console.error("Error sending message:", error);
++      console.error("Error sending message to Arweave:", error);
+       throw error;
+     }
+   }
+@@ -461,12 +456,36 @@ class ArweaveWalletConnection extends HTMLElement {
+         throw new Error(Error);
+       }
+ 
++      console.log("Dry run completed successfully");
+       return { Messages, Error };
+     } catch (error) {
+       console.error("Error in dryRunArweave:", error);
+       throw error;
+     }
+   }
++
++  async spawnProcess(module, scheduler, tags, data) {
++    if (!this.signer) {
++      throw new Error(
++        "Signer is not initialized. Please connect wallet first.",
++      );
++    }
++
++    try {
++      const processId = await spawn({
++        module,
++        scheduler,
++        signer: this.signer,
++        tags,
++        data,
++      });
++
++      return processId;
++    } catch (error) {
++      console.error("Error spawning process:", error);
++      throw error;
++    }
++  }
+ }
+ 
+ function isMobile() {

@@ -1,5 +1,5 @@
 import {
-  addWalletAddress,
+  checkUserHasBazarProfile,
   addUsername,
   updateMaxScore,
   dryRunGetUserData,
@@ -7,6 +7,11 @@ import {
 } from "./arweave-helpers.js";
 
 import { PixelatedButton } from "./pixelated-button.js";
+import {
+  checkWalletAssociation,
+  registerWallet,
+  createBazarProfile,
+} from "./signup.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const homepage = document.getElementById("homepage");
@@ -16,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const menuScreen = document.getElementById("menuScreen");
   const leaderboardScreen = document.getElementById("leaderboardScreen");
   const usernameInput = document.getElementById("usernameInput");
-  const submitUsernameBtn = document.getElementById("submitUsername");
+  const submitSignupBtn = document.getElementById("submitSignup");
   const letsPlayBtn = document.getElementById("letsPlay");
   const showLeaderboardBtn = document.getElementById("showLeaderboard");
   const backToMenuBtn = document.getElementById("backToMenu");
@@ -49,6 +54,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function hideModalLoading() {
     modalLoadingIndicator.style.display = "none";
     modalContent.classList.remove("loading");
+  }
+
+  function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   }
 
   function hideModal() {
@@ -85,7 +95,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentLetter = "";
   let currentPosition = { x: 0, y: 0 };
   let gameLoop;
+  let currentUsername;
   let wordsToProcess;
+  let userHasBazarProfile = false;
 
   const WORDS = [
     "ARWEAVE",
@@ -111,6 +123,60 @@ document.addEventListener("DOMContentLoaded", () => {
     [-1, -1],
   ];
 
+  const emailInput = document.getElementById("emailInput");
+
+  function validateInputs() {
+    console.log("validateInputs function called");
+
+    const username = usernameInput.value.trim();
+    const email = emailInput.value.trim();
+    console.log("Username:", username);
+    console.log("Email:", email);
+
+    const usernameRequired =
+      document.getElementById("usernameField").style.display !== "none";
+    const emailRequired =
+      document.getElementById("emailField").style.display !== "none";
+    console.log("Username required:", usernameRequired);
+    console.log("Email required:", emailRequired);
+
+    let isValid = true;
+
+    if (usernameRequired) {
+      console.log("Validating username");
+      if (username) {
+        console.log("Username is valid");
+        usernameInput.classList.remove("invalid");
+      } else {
+        console.log("Username is invalid");
+        usernameInput.classList.add("invalid");
+        isValid = false;
+      }
+    }
+
+    if (emailRequired) {
+      console.log("Validating email");
+      if (email && isValidEmail(email)) {
+        console.log("Email is valid");
+        emailInput.classList.remove("invalid");
+      } else {
+        console.log("Email is invalid");
+        emailInput.classList.add("invalid");
+        isValid = false;
+      }
+    }
+
+    console.log("Is form valid:", isValid);
+    console.log("Submit button before:", submitSignupBtn.disabled);
+    submitSignupBtn.disabled = !isValid;
+    console.log("Submit button after:", submitSignupBtn.disabled);
+
+    return isValid;
+  }
+
+  usernameInput.addEventListener("input", validateInputs);
+  emailInput.addEventListener("input", validateInputs);
+
   walletConnection.addEventListener("walletConnected", async (event) => {
     showLoading();
 
@@ -118,69 +184,133 @@ document.addEventListener("DOMContentLoaded", () => {
     connectWalletScreen.style.display = "none";
 
     try {
-      // Add wallet address to Arweave
-      await addWalletAddress(walletConnection, event.detail);
-      console.log("Wallet address added to Arweave");
+      // Check if wallet is associated with an email
+      const isAssociated = await checkWalletAssociation(event.detail);
 
-      // Timeout for 1.5 seconds
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Perform dry run to get user data
-      const dryRunResult = await walletConnection.dryRunArweave([
-        { name: "Action", value: "GetUserData" },
-        { name: "Wallet-Address", value: walletConnection.walletAddress },
-      ]);
-
+      // Perform dry run to get user data (including username)
+      const dryRunResult = await dryRunGetUserData(
+        walletConnection,
+        event.detail,
+      );
+      let userData = null;
       if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
-        const userData = JSON.parse(dryRunResult.Messages[0].Data);
-        if (userData.username) {
-          currentUsername = userData.username;
-          console.log("Existing username found:", currentUsername);
-          menuScreen.style.display = "block";
-          updateUserInfo();
-        } else {
-          console.log("No existing username found");
-          usernameScreen.style.display = "block";
-        }
+        userData = JSON.parse(dryRunResult.Messages[0].Data);
+      }
+
+      userHasBazarProfile = await checkUserHasBazarProfile(
+        walletConnection,
+        walletConnection.walletAddress,
+      );
+
+      console.log(
+        `User ${userHasBazarProfile ? "has" : "doesn't have"} a Bazar profile`,
+      );
+
+      usernameFound =
+        userData.username != "Unknown" && userData.username != "undefined";
+
+      if (isAssociated && userData && usernameFound) {
+        // User has both email and username
+        currentUsername = userData.username;
+        console.log("Existing username found:", currentUsername);
+        console.log("Arweave Hub associated email found");
+
+        menuScreen.style.display = "block";
+        updateUserInfo();
+      } else if (!isAssociated && userData && usernameFound) {
+        // User has username but no associated email
+        currentUsername = userData.username;
+        console.log(
+          `Username found (${userData.username}), but no associated email`,
+        );
+        console.log(userData);
+        showEmailOnlyScreen();
+      } else if (isAssociated && (!userData || !usernameFound)) {
+        // User has email but no username
+        console.log("No existing username found");
+        showUsernameOnlyScreen();
       } else {
+        // User has neither email nor username
         console.log("No user data found");
-        usernameScreen.style.display = "block";
+        showFullSignupScreen();
       }
     } catch (error) {
       console.error("Error during wallet connection process:", error);
       alert(
         "An error occurred while setting up your account. Please try again.",
       );
-      usernameScreen.style.display = "block";
     } finally {
       hideLoading();
     }
   });
 
-  submitUsernameBtn.addEventListener("click", async () => {
-    currentUsername = usernameInput.value.trim();
+  // Update the submit username button event listener
+  submitSignupBtn.addEventListener("click", async () => {
+    let validation = validateInputs();
+    console.log("VALIDATION: ");
+    console.log(validation);
+    console.log("Submit button clicked");
 
-    if (currentUsername) {
+    if (validation) {
       showLoading();
 
       try {
-        await addUsername(
-          walletConnection,
-          walletConnection.walletAddress,
-          currentUsername,
-        );
-        console.log("Username added to Arweave");
-        usernameScreen.style.display = "none";
+        const username = usernameInput.value.trim();
+        const email = emailInput.value.trim();
+
+        if (emailInput.style.display !== "none") {
+          // Register wallet with email
+          const success = await registerWallet(
+            walletConnection.walletAddress,
+            email,
+          );
+          if (!success) {
+            throw new Error("Failed to register wallet");
+          }
+          console.log("Wallet registered successfully");
+        }
+
+        if (usernameInput.style.display !== "none") {
+          if (!userHasBazarProfile) {
+            // Create Bazar profile
+            const profile = {
+              DisplayName: username,
+              UserName: username.toLowerCase().replace(/\s/g, "_"),
+              Description: "I played WordStack!",
+              CoverImage: null,
+              ProfileImage: null,
+            };
+
+            const createdProfile = await createBazarProfile(
+              walletConnection,
+              profile,
+            );
+
+            if (!createdProfile) {
+              throw new Error("Failed to create Bazar profile");
+            }
+            console.log("Bazar profile created successfully");
+          }
+          // Add username to WordStack Process
+          await addUsername(
+            walletConnection,
+            walletConnection.walletAddress,
+            username,
+          );
+          console.log("Username added to WordStack Process");
+
+          currentUsername = username;
+        }
+
+        document.getElementById("signupScreen").style.display = "none";
         menuScreen.style.display = "block";
-        updateUserInfo(); // Call this function here
+        updateUserInfo();
       } catch (error) {
-        console.error("Error adding username:", error);
-        alert("Failed to set username. Please try again.");
+        console.error("Error during signup:", error);
+        alert("Failed to complete signup. Please try again.");
       } finally {
         hideLoading();
       }
-    } else {
-      alert("Please enter a valid username.");
     }
   });
 
@@ -222,6 +352,36 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function showEmailOnlyScreen() {
+    const signupScreen = document.getElementById("signupScreen");
+    signupScreen.style.display = "block";
+    document.getElementById("usernameInput").style.display = "none";
+    document.getElementById("emailInput").style.display = "block";
+    document.getElementById("signupTitle").textContent = "Almost there!";
+    document.getElementById("signupMessage").textContent =
+      "We just need your email to complete your account setup.";
+  }
+
+  function showUsernameOnlyScreen() {
+    const signupScreen = document.getElementById("signupScreen");
+    signupScreen.style.display = "block";
+    document.getElementById("usernameInput").style.display = "block";
+    document.getElementById("emailInput").style.display = "none";
+    document.getElementById("signupTitle").textContent = "Choose a Username";
+    document.getElementById("signupMessage").textContent =
+      "Please choose a username to complete your account setup.";
+  }
+
+  function showFullSignupScreen() {
+    const signupScreen = document.getElementById("signupScreen");
+    signupScreen.style.display = "block";
+    document.getElementById("usernameInput").style.display = "block";
+    document.getElementById("emailInput").style.display = "block";
+    document.getElementById("signupTitle").textContent = "Create Your Account";
+    document.getElementById("signupMessage").textContent =
+      "Please provide a username and email to set up your account.";
+  }
+
   function updateUserInfo() {
     const userInfoElement = document.getElementById("userInfo");
     if (walletConnection.walletAddress && currentUsername) {
@@ -240,7 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const leaderboardData = await getLeaderboard(walletConnection, 10);
       const title = document.querySelector(".game-title");
       title.style.display = "none"; // Hide the title
-      console.log("Leaderboard data:", leaderboardData);
+      console.log("Leaderboard data fetched successfully");
 
       const leaderboardList = document.getElementById("leaderboardList");
       leaderboardList.innerHTML = ""; // Clear previous entries
@@ -438,7 +598,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const totalWords = wordsFound.length;
     let flashedWordsCount = 0;
 
-    const flashPromises = wordsFound.map(({ x, y, word, dx, dy }) => {
+    const flashPromises = wordsFound.map(async ({ x, y, word, dx, dy }) => {
       highlightWord(word);
       return flashWord(x, y, word.length, dx, dy).then(() => {
         flashedWordsCount++;
@@ -502,7 +662,7 @@ document.addEventListener("DOMContentLoaded", () => {
         flashCount++;
 
         if (flashCount < totalFlashes) {
-          setTimeout(flashStep, 150);
+          setTimeout(flashStep, 100);
         } else {
           for (let i = 0; i < length; i++) {
             const cellX = x + dx * i;
@@ -691,6 +851,7 @@ document.addEventListener("DOMContentLoaded", () => {
         walletConnection,
         walletConnection.walletAddress,
       );
+      console.log("User data fetched for score update");
 
       let currentMaxScore = 0;
       if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
@@ -704,6 +865,7 @@ document.addEventListener("DOMContentLoaded", () => {
           walletConnection.walletAddress,
           score,
         );
+        console.log("New high score updated");
         highScoreMessageElement.textContent = "New High Score!";
         document.getElementById("previousHighScore").textContent =
           `Previous high score: ${currentMaxScore}`;

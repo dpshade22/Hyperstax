@@ -3,6 +3,7 @@ import {
   dryrun,
   message,
   result,
+  spawn,
 } from "@permaweb/aoconnect";
 import { arGql } from "ar-gql";
 import { ArConnect } from "arweavekit/auth";
@@ -33,6 +34,7 @@ class ArweaveWalletConnection extends HTMLElement {
     this.walletAddress = null;
     this.signer = null;
     this.authMethod = null;
+    this.isConnecting = false;
     this.attachShadow({ mode: "open" });
 
     this.sendMessageToArweave = this.sendMessageToArweave.bind(this);
@@ -204,10 +206,10 @@ class ArweaveWalletConnection extends HTMLElement {
       `;
   }
 
-  addEventListeners() {
+  async addEventListeners() {
     this.shadowRoot
       .querySelector("pixelated-button")
-      .addEventListener("click", () => this.openModal());
+      .addEventListener("click", async () => await this.openModal());
 
     if (!this.isMobile) {
       this.shadowRoot
@@ -249,8 +251,13 @@ class ArweaveWalletConnection extends HTMLElement {
     }
   }
 
-  openModal() {
-    this.shadowRoot.getElementById("walletModal").style.display = "flex";
+  async openModal() {
+    try {
+      await preloadImages();
+      this.shadowRoot.getElementById("walletModal").style.display = "flex";
+    } catch (error) {
+      console.error("Failed to load images:", error);
+    }
   }
 
   closeModal() {
@@ -258,11 +265,11 @@ class ArweaveWalletConnection extends HTMLElement {
   }
 
   async connectWallet(method) {
+    if (this.isConnecting || this.walletAddress) return;
+    this.isConnecting = true;
+
     this.closeModal();
-    if (this.walletAddress) {
-      alert(`Already connected: ${this.walletAddress}`);
-      return;
-    }
+    if (this.walletAddress) alert(`Already connected: ${this.walletAddress}`);
 
     try {
       switch (method) {
@@ -284,6 +291,7 @@ class ArweaveWalletConnection extends HTMLElement {
 
       if (this.walletAddress) {
         console.log(`Wallet connected successfully: ${this.walletAddress}`);
+        console.log("Auth method:", this.authMethod);
 
         switch (this.authMethod) {
           case "Othent":
@@ -294,11 +302,9 @@ class ArweaveWalletConnection extends HTMLElement {
             this.signer = createDataItemSigner(this.generatedWallet);
             break;
           case "ArConnect":
-            console.log(window.arweaveWallet);
             this.signer = createDataItemSigner(window.arweaveWallet);
             break;
           case "QuickWallet":
-            console.log(this.generatedWallet);
             this.signer = createDataItemSigner(QuickWallet);
             // this.signer = createDataItemSignerJWK(this.generatedWallet);
             break;
@@ -309,8 +315,6 @@ class ArweaveWalletConnection extends HTMLElement {
         if (!this.signer) {
           throw new Error("Failed to create signer");
         }
-
-        console.log("Signer created:", this.signer);
 
         this.dispatchEvent(
           new CustomEvent("walletConnected", { detail: this.walletAddress }),
@@ -403,7 +407,7 @@ class ArweaveWalletConnection extends HTMLElement {
   //   }
   // }
 
-  async sendMessageToArweave(tags) {
+  async sendMessageToArweave(tags, data = "", processId = PROCESS_ID) {
     if (!this.signer) {
       throw new Error(
         "Signer is not initialized. Please connect wallet first.",
@@ -411,37 +415,36 @@ class ArweaveWalletConnection extends HTMLElement {
     }
 
     try {
-      console.log("PROCESS_ID:", PROCESS_ID);
-      console.log("Tags:", tags);
-      console.log("Signer:", this.signer);
+      console.log("Message sent to Arweave:");
+      console.log({ PROCESS_ID: processId, Tags: tags, Signer: this.signer });
 
       const messageId = await message({
-        process: PROCESS_ID,
+        process: processId,
         tags,
         signer: this.signer,
+        data: data,
       });
 
       console.log("Message ID:", messageId);
       let { Messages, Error } = await result({
-        process: PROCESS_ID,
+        process: processId,
         message: messageId,
+        data: data,
       });
 
       console.log("Messages:", Messages);
 
-      if (Error) console.error(Error);
-      else
-        console.log(
-          `Sent Action: ${tags.find((tag) => tag.name === "Action").value}`,
-        );
+      if (Error) console.error("Error in Arweave response:", Error);
+      else console.log("Arweave action completed successfully");
+
       return { Messages, Error };
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("Error sending message to Arweave:", error);
       throw error;
     }
   }
 
-  async dryRunArweave(tags, data = "") {
+  async dryRunArweave(tags, data = "", processId = PROCESS_ID) {
     if (!this.signer) {
       throw new Error(
         "Signer is not initialized. Please connect wallet first.",
@@ -450,7 +453,7 @@ class ArweaveWalletConnection extends HTMLElement {
 
     try {
       const { Messages, Error } = await dryrun({
-        process: PROCESS_ID,
+        process: processId,
         tags: tags,
         data: data,
         signer: this.signer,
@@ -461,9 +464,33 @@ class ArweaveWalletConnection extends HTMLElement {
         throw new Error(Error);
       }
 
+      console.log("Dry run completed successfully");
       return { Messages, Error };
     } catch (error) {
       console.error("Error in dryRunArweave:", error);
+      throw error;
+    }
+  }
+
+  async spawnProcess(module, scheduler, tags, data) {
+    if (!this.signer) {
+      throw new Error(
+        "Signer is not initialized. Please connect wallet first.",
+      );
+    }
+
+    try {
+      const processId = await spawn({
+        module,
+        scheduler,
+        signer: this.signer,
+        tags,
+        data,
+      });
+
+      return processId;
+    } catch (error) {
+      console.error("Error spawning process:", error);
       throw error;
     }
   }
@@ -473,6 +500,26 @@ function isMobile() {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent,
   );
+}
+
+async function preloadImages() {
+  const imageSources = [
+    "https://arweave.net/aw_3Afim3oQU3JkaeWlh8DXQOcS8ZWt3niRpq-rrECA",
+    "https://arweave.net/33nBIUNlGK4MnWtJZQy9EzkVJaAd7WoydIKfkJoMvDs",
+    "https://arweave.net/qVms-k8Ox-eKFJN5QFvrPQvT9ryqQXaFcYbr-fJbgLY",
+    "https://arweave.net/tQUcL4wlNj_NED2VjUGUhfCTJ6pDN9P0e3CbnHo3vUE",
+  ];
+
+  const imagePromises = imageSources.map((src) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = src;
+    });
+  });
+
+  return Promise.all(imagePromises);
 }
 
 // Check if the custom element has already been defined

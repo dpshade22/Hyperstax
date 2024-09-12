@@ -8,6 +8,23 @@ class PixelatedButton extends HTMLElement {
     this.render();
   }
 
+  static get observedAttributes() {
+    return ["disabled"];
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (name === "disabled") {
+      this.updateDisabledState();
+    }
+  }
+
+  updateDisabledState() {
+    const isDisabled = this.hasAttribute("disabled");
+    const button = this.shadowRoot.querySelector(".box");
+    button.style.opacity = isDisabled ? "0.5" : "1";
+    button.style.cursor = isDisabled ? "not-allowed" : "pointer";
+  }
+
   render() {
     const buttonText = this.getAttribute("text") || "Button";
     const isInverted = this.hasAttribute("inverted");

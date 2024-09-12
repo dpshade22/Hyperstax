@@ -6,6 +6,7 @@ class PixelatedInput extends HTMLElement {
 
   connectedCallback() {
     this.render();
+    this.addEventListeners();
   }
 
   render() {
@@ -46,6 +47,7 @@ class PixelatedInput extends HTMLElement {
 
         .pixelated-container .box input {
           width: 100%;
+          height: 100%;
           padding: 0;
           text-align: center;
           background: transparent;
@@ -62,6 +64,8 @@ class PixelatedInput extends HTMLElement {
           font-weight: 700;
           line-height: normal;
           letter-spacing: -.32px;
+          position: relative;
+          z-index: 2;
         }
 
         .pixelated-container .box input::placeholder {
@@ -71,6 +75,7 @@ class PixelatedInput extends HTMLElement {
         .pixelated-container .front,
         .pixelated-container .back {
           display: block;
+          pointer-events: none;
         }
 
         .pixelated-container .front:before,
@@ -123,6 +128,33 @@ class PixelatedInput extends HTMLElement {
         <div class="back"></div>
       </div>
     `;
+  }
+
+  addEventListeners() {
+    const input = this.shadowRoot.querySelector("input");
+    const container = this.shadowRoot.querySelector(".pixelated-container");
+
+    input.addEventListener("input", (event) => {
+      this.value = event.target.value;
+      this.dispatchEvent(new CustomEvent("input", { detail: this.value }));
+    });
+
+    input.addEventListener("change", (event) => {
+      this.value = event.target.value;
+      this.dispatchEvent(new CustomEvent("change", { detail: this.value }));
+    });
+
+    container.addEventListener("click", () => {
+      input.focus();
+    });
+  }
+
+  get value() {
+    return this.shadowRoot.querySelector("input").value;
+  }
+
+  set value(newValue) {
+    this.shadowRoot.querySelector("input").value = newValue;
   }
 }
 

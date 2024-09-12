@@ -18,22 +18,34 @@
             <div class="pixel"></div>
         </div>
         <div id="homepage">
-            <h1 class="game-title">WordStack</h1>
             <div id="connectWalletScreen">
+                <h1 class="game-title">WordStack</h1>
                 <arweave-wallet-connection></arweave-wallet-connection>
             </div>
-            <div id="usernameScreen" style="display: none">
-                <input
-                    type="text"
-                    id="usernameInput"
-                    placeholder="Enter your username"
-                />
+            <div id="signupScreen" style="display: none">
+                <h1 id="signupTitle"></h1>
+                <p id="signupMessage"></p>
+                <div id="usernameField">
+                    <input
+                        type="text"
+                        id="usernameInput"
+                        placeholder="Enter your username"
+                    />
+                </div>
+                <div id="emailField">
+                    <input
+                        type="email"
+                        id="emailInput"
+                        placeholder="Enter your email"
+                    />
+                </div>
                 <pixelated-button
-                    id="submitUsername"
+                    id="submitSignup"
                     text="Submit"
                 ></pixelated-button>
             </div>
             <div id="menuScreen" style="display: none">
+                <h1 class="game-title">WordStack</h1>
                 <pixelated-button
                     id="letsPlay"
                     text="Let's Play"
@@ -45,6 +57,7 @@
                 ></pixelated-button>
             </div>
             <div id="leaderboardScreen" style="display: none">
+                <h1 class="game-title">Leaderboard</h1>
                 <div id="leaderboardList"></div>
                 <pixelated-button
                     id="backToMenu"
