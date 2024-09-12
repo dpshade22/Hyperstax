@@ -738,9 +738,45 @@ h3 {
     #leaderboardScreen {
         height: 80vh;
     }
+    #usernameInput,
+    #emailInput,
+    #submitSignup {
+        width: 90%;
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
+    }
 
-    #submitUsername {
-        font-size: 14px;
-        padding: 10px;
+    #signupScreen {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    #usernameField,
+    #emailField,
+    #submitSignup {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    pixelated-input,
+    pixelated-button {
+        width: 90%;
+        max-width: 300px;
+    }
+
+    /* Center the submit button */
+    #submitSignup {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    /* Adjust the width of the pixelated-button inside submitSignup */
+    #submitSignup pixelated-button {
+        width: 100%;
     }
 }
