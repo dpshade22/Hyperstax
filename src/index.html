@@ -6,12 +6,15 @@
             name="viewport"
             content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
         />
-        <title>WordStack</title>
+        <title>Hyperstax</title>
         <link rel="stylesheet" href="styles.css" />
     </head>
 
     <body>
         <div id="userInfo" class="user-info" style="display: none"></div>
+        <div id="connectingMessage" style="display: none">
+            Connecting Wallet
+        </div>
         <div id="loadingIndicator" class="loading-indicator">
             <div class="pixel"></div>
             <div class="pixel"></div>
@@ -19,7 +22,7 @@
         </div>
         <div id="homepage">
             <div id="connectWalletScreen">
-                <h1 class="game-title">WordStack</h1>
+                <h1 class="game-title">Hyperstax</h1>
                 <arweave-wallet-connection></arweave-wallet-connection>
             </div>
             <div id="signupScreen" style="display: none">
@@ -46,7 +49,7 @@
                 <div style="margin: 3rem"></div>
             </div>
             <div id="menuScreen" style="display: none">
-                <h1 class="game-title">WordStack</h1>
+                <h1 class="game-title">Hyperstax</h1>
                 <pixelated-button
                     id="letsPlay"
                     text="Let's Play"
@@ -56,11 +59,11 @@
                     id="showLeaderboard"
                     text="Leaderboard"
                 ></pixelated-button>
-                <div style="padding: 7px 0"></div>
-                <pixelated-button
+                <!-- <div style="padding: 7px 0"></div> -->
+                <!-- <pixelated-button
                     id="previewWords"
                     text="Preview Words"
-                ></pixelated-button>
+                ></pixelated-button> -->
             </div>
             <div id="previewWordsScreen" style="display: none">
                 <h1 class="game-title">Word Preview</h1>

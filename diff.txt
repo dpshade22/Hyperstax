@@ -3,7 +3,7 @@ index 978da5c..4f5d495 100644
 --- a/src/arweave-helpers.js
 +++ b/src/arweave-helpers.js
 @@ -20,11 +20,13 @@ export async function addUsername(walletConnection, walletAddress, username) {
- 
+
  // Helper function to update max score
  export async function updateMaxScore(walletConnection, walletAddress, score) {
 -  return await walletConnection.sendMessageToArweave([
@@ -15,7 +15,7 @@ index 978da5c..4f5d495 100644
 +
 +  await importScore(walletConnection, walletAddress, score);
  }
- 
+
  // Helper function to get user data
 @@ -42,3 +44,21 @@ export async function getLeaderboard(walletConnection, limit = 10) {
      { name: "Limit", value: limit.toString() },
@@ -49,7 +49,7 @@ index 6b005f7..375e487 100644
          <div id="homepage">
 -            <h1 class="game-title">WordStack</h1>
              <div id="connectWalletScreen">
-+                <h1 class="game-title">WordStack</h1>
++                <h1 class="game-title">Hyperstax</h1>
                  <arweave-wallet-connection></arweave-wallet-connection>
              </div>
 -            <div id="usernameScreen" style="display: none">
@@ -87,14 +87,14 @@ index b4b44c9..e94456c 100644
 +++ b/src/index.js
 @@ -7,6 +7,11 @@ import {
  } from "./arweave-helpers.js";
- 
+
  import { PixelatedButton } from "./pixelated-button.js";
 +import {
 +  checkWalletAssociation,
 +  registerWallet,
 +  createBazarProfile,
 +} from "./signup.js";
- 
+
  document.addEventListener("DOMContentLoaded", () => {
    const homepage = document.getElementById("homepage");
 @@ -16,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
@@ -109,7 +109,7 @@ index b4b44c9..e94456c 100644
 @@ -51,6 +56,11 @@ document.addEventListener("DOMContentLoaded", () => {
      modalContent.classList.remove("loading");
    }
- 
+
 +  function isValidEmail(email) {
 +    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 +    return emailRegex.test(email);
@@ -121,7 +121,7 @@ index b4b44c9..e94456c 100644
 @@ -111,6 +121,43 @@ document.addEventListener("DOMContentLoaded", () => {
      [-1, -1],
    ];
- 
+
 +  const emailInput = document.getElementById("emailInput");
 +
 +  function validateInputs() {
@@ -161,17 +161,17 @@ index b4b44c9..e94456c 100644
 +
    walletConnection.addEventListener("walletConnected", async (event) => {
      showLoading();
- 
+
 @@ -118,69 +165,112 @@ document.addEventListener("DOMContentLoaded", () => {
      connectWalletScreen.style.display = "none";
- 
+
      try {
 -      // Add wallet address to Arweave
 -      await addWalletAddress(walletConnection, event.detail);
 -      console.log("Wallet address added to Arweave");
 +      // Check if wallet is associated with an email
 +      const isAssociated = await checkWalletAssociation(event.detail);
- 
+
 -      // Timeout for 1.5 seconds
 -      await new Promise((resolve) => setTimeout(resolve, 1500));
 +      // Perform dry run to get user data (including username)
@@ -183,7 +183,7 @@ index b4b44c9..e94456c 100644
 +      if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
 +        userData = JSON.parse(dryRunResult.Messages[0].Data);
 +      }
- 
+
 -      // Perform dry run to get user data
 -      const dryRunResult = await walletConnection.dryRunArweave([
 -        { name: "Action", value: "GetUserData" },
@@ -194,7 +194,7 @@ index b4b44c9..e94456c 100644
 +        currentUsername = userData.username;
 +        console.log("Existing username found:", currentUsername);
 +        console.log("Arweave Hub associated email found");
- 
+
 -      if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
 -        const userData = JSON.parse(dryRunResult.Messages[0].Data);
 -        if (userData.username) {
@@ -233,7 +233,7 @@ index b4b44c9..e94456c 100644
        hideLoading();
      }
    });
- 
+
 -  submitUsernameBtn.addEventListener("click", async () => {
 -    currentUsername = usernameInput.value.trim();
 -
@@ -242,7 +242,7 @@ index b4b44c9..e94456c 100644
 +  submitSignupBtn.addEventListener("click", async () => {
 +    if (validateInputs()) {
        showLoading();
- 
+
        try {
 -        await addUsername(
 -          walletConnection,
@@ -271,7 +271,7 @@ index b4b44c9..e94456c 100644
 +          const profile = {
 +            DisplayName: username,
 +            Username: username.toLowerCase().replace(/\s/g, "_"),
-+            Description: "I played WordStack!",
++            Description: "I played Hyperstax!",
 +            CoverImage: null,
 +            ProfileImage: null,
 +          };
@@ -286,13 +286,13 @@ index b4b44c9..e94456c 100644
 +          }
 +          console.log("Bazar profile created successfully");
 +
-+          // Add username to WordStack Process
++          // Add username to Hyperstax Process
 +          await addUsername(
 +            walletConnection,
 +            walletConnection.walletAddress,
 +            username,
 +          );
-+          console.log("Username added to WordStack Process");
++          console.log("Username added to Hyperstax Process");
 +
 +          currentUsername = username;
 +        }
@@ -313,11 +313,11 @@ index b4b44c9..e94456c 100644
 -      alert("Please enter a valid username.");
      }
    });
- 
+
 @@ -222,6 +312,36 @@ document.addEventListener("DOMContentLoaded", () => {
      }
    }
- 
+
 +  function showEmailOnlyScreen() {
 +    const signupScreen = document.getElementById("signupScreen");
 +    signupScreen.style.display = "block";
@@ -357,7 +357,7 @@ index b4b44c9..e94456c 100644
        title.style.display = "none"; // Hide the title
 -      console.log("Leaderboard data:", leaderboardData);
 +      console.log("Leaderboard data fetched successfully");
- 
+
        const leaderboardList = document.getElementById("leaderboardList");
        leaderboardList.innerHTML = ""; // Clear previous entries
 @@ -691,6 +811,7 @@ document.addEventListener("DOMContentLoaded", () => {
@@ -365,7 +365,7 @@ index b4b44c9..e94456c 100644
          walletConnection.walletAddress,
        );
 +      console.log("User data fetched for score update");
- 
+
        let currentMaxScore = 0;
        if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
 @@ -704,6 +825,7 @@ document.addEventListener("DOMContentLoaded", () => {
@@ -383,7 +383,7 @@ index 1cb6ee2..fbd3354 100644
 @@ -8,6 +8,23 @@ class PixelatedButton extends HTMLElement {
      this.render();
    }
- 
+
 +  static get observedAttributes() {
 +    return ["disabled"];
 +  }
@@ -409,15 +409,15 @@ index 6a346d1..1dc946f 100644
 --- a/src/pixelated-input.js
 +++ b/src/pixelated-input.js
 @@ -6,6 +6,7 @@ class PixelatedInput extends HTMLElement {
- 
+
    connectedCallback() {
      this.render();
 +    this.addEventListeners();
    }
- 
+
    render() {
 @@ -46,6 +47,7 @@ class PixelatedInput extends HTMLElement {
- 
+
          .pixelated-container .box input {
            width: 100%;
 +          height: 100%;
@@ -431,7 +431,7 @@ index 6a346d1..1dc946f 100644
 +          position: relative;
 +          z-index: 2;
          }
- 
+
          .pixelated-container .box input::placeholder {
 @@ -71,6 +75,7 @@ class PixelatedInput extends HTMLElement {
          .pixelated-container .front,
@@ -439,7 +439,7 @@ index 6a346d1..1dc946f 100644
            display: block;
 +          pointer-events: none;
          }
- 
+
          .pixelated-container .front:before,
 @@ -124,6 +129,33 @@ class PixelatedInput extends HTMLElement {
        </div>
@@ -473,7 +473,7 @@ index 6a346d1..1dc946f 100644
 +    this.shadowRoot.querySelector("input").value = newValue;
 +  }
  }
- 
+
  customElements.define("pixelated-input", PixelatedInput);
 diff --git a/src/styles.css b/src/styles.css
 index 6872f4f..447efd6 100644
@@ -482,7 +482,7 @@ index 6872f4f..447efd6 100644
 @@ -329,7 +329,8 @@ arweave-wallet-connection::part(button):active {
      margin: 0 auto;
  }
- 
+
 -#usernameInput {
 +#usernameInput,
 +#emailInput {
@@ -526,12 +526,12 @@ index 6872f4f..447efd6 100644
 +    opacity: 0.5;
 +    cursor: not-allowed;
  }
- 
+
  #submitUsername {
 @@ -706,11 +739,6 @@ h3 {
          height: 80vh;
      }
- 
+
 -    #usernameInput {
 -        font-size: 14px;
 -        padding: 10px;
@@ -553,11 +553,11 @@ index 8abc939..e55d045 100644
  import { arGql } from "ar-gql";
  import { ArConnect } from "arweavekit/auth";
 @@ -284,6 +285,7 @@ class ArweaveWalletConnection extends HTMLElement {
- 
+
        if (this.walletAddress) {
          console.log(`Wallet connected successfully: ${this.walletAddress}`);
 +        console.log("Auth method:", this.authMethod);
- 
+
          switch (this.authMethod) {
            case "Othent":
 @@ -294,11 +296,9 @@ class ArweaveWalletConnection extends HTMLElement {
@@ -575,7 +575,7 @@ index 8abc939..e55d045 100644
 @@ -310,8 +310,6 @@ class ArweaveWalletConnection extends HTMLElement {
            throw new Error("Failed to create signer");
          }
- 
+
 -        console.log("Signer created:", this.signer);
 -
          this.dispatchEvent(
@@ -583,20 +583,20 @@ index 8abc939..e55d045 100644
          );
 @@ -411,9 +409,8 @@ class ArweaveWalletConnection extends HTMLElement {
      }
- 
+
      try {
 -      console.log("PROCESS_ID:", PROCESS_ID);
 -      console.log("Tags:", tags);
 -      console.log("Signer:", this.signer);
 +      console.log("Message sent to Arweave:");
 +      console.log({ PROCESS_ID: PROCESS_ID, Tags: tags, Signer: this.signer });
- 
+
        const messageId = await message({
          process: PROCESS_ID,
 @@ -429,14 +426,12 @@ class ArweaveWalletConnection extends HTMLElement {
- 
+
        console.log("Messages:", Messages);
- 
+
 -      if (Error) console.error(Error);
 -      else
 -        console.log(
@@ -615,7 +615,7 @@ index 8abc939..e55d045 100644
 @@ -461,12 +456,36 @@ class ArweaveWalletConnection extends HTMLElement {
          throw new Error(Error);
        }
- 
+
 +      console.log("Dry run completed successfully");
        return { Messages, Error };
      } catch (error) {
@@ -647,5 +647,5 @@ index 8abc939..e55d045 100644
 +    }
 +  }
  }
- 
+
  function isMobile() {

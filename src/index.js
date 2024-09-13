@@ -51,9 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function setupSounds() {
     const soundFiles = {
-      dropSound: "assets/DropSoundUp.mp3",
-      wordMatch: "assets/WordMatch.wav",
-      specialMatch: "assets/SpecialMatch.wav",
+      dropSound: "assets/DropSound.mp3",
+      wordMatch: "assets/WordMatch.mp3",
+      specialMatch: "assets/SpecialMatch.mp3",
       moveLetter: "assets/MoveLetter.mp3",
     };
 
@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
           console.error(`Error loading sound ${name}:`, e);
         });
 
-        // Reduce volume of drop sound
+        // Reduce volume of drop sound and move letter sound
         if (name === "dropSound" || name === "moveLetter") {
           sounds[name].volume = 0.25; // Adjust this value as needed (0.0 to 1.0)
         }
@@ -75,7 +75,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   setupSounds();
-
   function playSound(soundName) {
     if (sounds[soundName] && sounds[soundName].play) {
       sounds[soundName].currentTime = 0;
@@ -110,12 +109,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 1000); // Wait for the fade-out transition to complete
   }
 
-  function showLoading() {
+  function showLoading(wallet = false) {
     loadingIndicator.style.display = "flex";
+    if (wallet)
+      document.getElementById("connectingMessage").style.display = "block";
   }
 
   function hideLoading() {
     loadingIndicator.style.display = "none";
+    document.getElementById("connectingMessage").style.display = "none";
   }
 
   let username = "";
@@ -123,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Constants
   const BOARD_WIDTH = 7;
   const BOARD_HEIGHT = 10;
-  const LETTERS = "AAAEEIOOPRSWVLLMMCUU$";
+  const LETTERS = "AAEIOOPRSWVLMMCUU$";
   const INITIAL_GAME_SPEED = 700;
   const SPEED_INCREASE_FACTOR = 0.85;
   const LETTERS_PER_SPEED_INCREASE = 3;
@@ -142,7 +144,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const WORDS = [
     "ARWEAVE",
-    "PARALLEL",
     "PERMA",
     "LUA",
     "CU",
@@ -237,11 +238,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   usernameInput.addEventListener("input", validateInputs);
   emailInput.addEventListener("input", validateInputs);
-  previewWordsBtn.addEventListener("click", showPreviewWords);
+  // previewWordsBtn.addEventListener("click", showPreviewWords);
   startGameFromPreviewBtn.addEventListener("click", startGame);
 
   walletConnection.addEventListener("walletConnected", async (event) => {
-    showLoading();
+    showLoading(true);
 
     console.log("Wallet connected:", event.detail);
     connectWalletScreen.style.display = "none";
@@ -339,7 +340,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const profile = {
               DisplayName: username,
               UserName: username.toLowerCase().replace(/\s/g, "_"),
-              Description: "I played WordStack!",
+              Description: "I played Hyperstax!",
               CoverImage: null,
               ProfileImage: null,
             };
@@ -360,7 +361,7 @@ document.addEventListener("DOMContentLoaded", () => {
             walletConnection.walletAddress,
             username,
           );
-          console.log("Username added to WordStack Process");
+          console.log("Username added to Hyperstax Process");
 
           currentUsername = username;
         }
@@ -378,6 +379,24 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   letsPlayBtn.addEventListener("click", async () => {
+    const { playCount, canPlay } = await getPlayCount(
+      walletConnection,
+      walletConnection.walletAddress,
+    );
+
+    if (!canPlay) {
+      alert(
+        "You have reached the maximum number of plays (3). Thank you for playing!",
+      );
+      console.log("Back to menu clicked");
+      leaderboardScreen.style.display = "none";
+      previewWordsScreen.style.display = "none";
+      menuScreen.style.display = "block";
+      const title = document.querySelector(".game-title");
+      title.style.display = "block";
+      return;
+    }
+
     if (!hasSeenPreviewWords) {
       showPreviewWords();
     } else {
@@ -416,23 +435,6 @@ document.addEventListener("DOMContentLoaded", () => {
   async function startGame() {
     Object.values(sounds).forEach((sound) => sound.load());
     previewWordsScreen.style.display = "none";
-    const { playCount, canPlay } = await getPlayCount(
-      walletConnection,
-      walletConnection.walletAddress,
-    );
-
-    if (!canPlay) {
-      alert(
-        "You have reached the maximum number of plays (3). Thank you for playing!",
-      );
-      console.log("Back to menu clicked");
-      leaderboardScreen.style.display = "none";
-      previewWordsScreen.style.display = "none";
-      menuScreen.style.display = "block";
-      const title = document.querySelector(".game-title");
-      title.style.display = "block";
-      return;
-    }
 
     if (walletConnection.walletAddress && currentUsername) {
       isFirstLetter = true;
@@ -564,8 +566,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const jackpotWordsElement = wordListElement.querySelector("#jackpot-words");
     const regularWordsElement = wordListElement.querySelector("#regular-words");
 
-    const jackpotWords = WORDS.filter((word) => word.length >= 4);
-    const regularWords = WORDS.filter((word) => word.length < 4);
+    const jackpotWords = WORDS.filter((word) => word.length >= 3);
+    const regularWords = WORDS.filter((word) => word.length < 3);
 
     jackpotWords.sort((a, b) => b.length - a.length);
 
@@ -595,6 +597,28 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function resizeBoard() {
+    const container = document.getElementById("gameContainer");
+    const controls = document.getElementById("controls");
+    const wordList = document.getElementById("word-list");
+
+    const availableHeight =
+      container.clientHeight -
+      controls.clientHeight -
+      wordList.clientHeight -
+      40;
+    const availableWidth = container.clientWidth - 20;
+
+    const aspectRatio = BOARD_WIDTH / BOARD_HEIGHT;
+    let boardWidth = availableWidth - 40;
+    let boardHeight = boardWidth / aspectRatio;
+
+    if (boardHeight > availableHeight) {
+      boardHeight = availableHeight;
+      boardWidth = boardHeight * aspectRatio;
+    }
+
+    gameBoard.style.width = `${boardWidth}px`;
+    gameBoard.style.height = `${boardHeight}px`;
     gameBoard.style.gridTemplateColumns = `repeat(${BOARD_WIDTH}, 1fr)`;
     gameBoard.style.gridTemplateRows = `repeat(${BOARD_HEIGHT}, 1fr)`;
   }
@@ -854,7 +878,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateScore(wordLength) {
     let points = wordLength >= 4 ? wordLength * 5 : wordLength;
-    score += points;
+    score += points * 5;
     scoreDisplay.textContent = `${score}`;
   }
 
@@ -975,6 +999,7 @@ document.addEventListener("DOMContentLoaded", () => {
     previewWordsScreen.style.display = "flex";
     const previewWordList = document.getElementById("previewWordList");
     previewWordList.innerHTML = `
+      <p class="game-description"><b>Objective:</b> Stack letters to form words and score points in this fast-paced word game!</p>
       <div id="preview-jackpot-words-container">
         <span class="jackpot-multiplier">x5</span>
         <div id="preview-jackpot-words"></div>
@@ -989,8 +1014,8 @@ document.addEventListener("DOMContentLoaded", () => {
       "#preview-regular-words",
     );
 
-    const jackpotWords = WORDS.filter((word) => word.length >= 4);
-    const regularWords = WORDS.filter((word) => word.length < 4);
+    const jackpotWords = WORDS.filter((word) => word.length >= 3);
+    const regularWords = WORDS.filter((word) => word.length < 3);
 
     jackpotWords.sort((a, b) => b.length - a.length);
 

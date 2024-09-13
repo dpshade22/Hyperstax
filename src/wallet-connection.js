@@ -65,19 +65,19 @@ class ArweaveWalletConnection extends HTMLElement {
         `,
         disabled: false,
       },
-      {
-        id: "othentOption",
-        html: `
-          <div id="othentOption" class="connect-option disabled">
-            <div class="connect-option-icon" style="background-image: url('https://arweave.net/33nBIUNlGK4MnWtJZQy9EzkVJaAd7WoydIKfkJoMvDs'); background-color: rgb(35, 117, 239);"></div>
-            <div class="connect-option-detail">
-              <p class="connect-option-name">Othent</p>
-              <p class="connect-option-desc">Web3 Authentication and Key Management</p>
-            </div>
-          </div>
-        `,
-        disabled: true,
-      },
+      // {
+      //   id: "othentOption",
+      //   html: `
+      //     <div id="othentOption" class="connect-option disabled">
+      //       <div class="connect-option-icon" style="background-image: url('https://arweave.net/33nBIUNlGK4MnWtJZQy9EzkVJaAd7WoydIKfkJoMvDs'); background-color: rgb(35, 117, 239);"></div>
+      //       <div class="connect-option-detail">
+      //         <p class="connect-option-name">Othent</p>
+      //         <p class="connect-option-desc">Web3 Authentication and Key Management</p>
+      //       </div>
+      //     </div>
+      //   `,
+      //   disabled: true,
+      // },
       {
         id: "arweaveAppOption",
         html: `
@@ -91,19 +91,19 @@ class ArweaveWalletConnection extends HTMLElement {
         `,
         disabled: false,
       },
-      {
-        id: "arconnectOption",
-        html: `
-          <div id="arconnectOption" class="connect-option ${this.isMobile ? "disabled" : ""}">
-            <div class="connect-option-icon" style="background-image: url('https://arweave.net/tQUcL4wlNj_NED2VjUGUhfCTJ6pDN9P0e3CbnHo3vUE'); background-color: rgb(171, 154, 255);"></div>
-            <div class="connect-option-detail">
-              <p class="connect-option-name">ArConnect</p>
-              <p class="connect-option-desc">${this.isMobile ? "Limited mobile support... " : ""}Non-custodial Arweave wallet for your favorite browser</p>
-            </div>
-          </div>
-        `,
-        disabled: this.isMobile,
-      },
+      // {
+      //   id: "arconnectOption",
+      //   html: `
+      //     <div id="arconnectOption" class="connect-option ${this.isMobile ? "disabled" : ""}">
+      //       <div class="connect-option-icon" style="background-image: url('https://arweave.net/tQUcL4wlNj_NED2VjUGUhfCTJ6pDN9P0e3CbnHo3vUE'); background-color: rgb(171, 154, 255);"></div>
+      //       <div class="connect-option-detail">
+      //         <p class="connect-option-name">ArConnect</p>
+      //         <p class="connect-option-desc">${this.isMobile ? "Limited mobile support... " : ""}Non-custodial Arweave wallet for your favorite browser</p>
+      //       </div>
+      //     </div>
+      //   `,
+      //   disabled: this.isMobile,
+      // },
     ];
 
     // Sort options: enabled first, then disabled
@@ -126,65 +126,107 @@ class ArweaveWalletConnection extends HTMLElement {
           .modal {
             display: none;
             position: fixed;
-            z-index: 1000;
-            left: 0;
             top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.5);
             justify-content: center;
             align-items: center;
           }
+
           .modal-content {
-            background-color: #e4e4e4;
-            padding: 20px;
-            border: 1px solid #232323;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
+            background: #fff;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            padding: 16px;
+            margin: 0 16px;
+            width: 100%;
+            max-width: 380px;
+            border-radius: 16px;
+            color: #000;
+            text-align: start;
           }
+
           h3 {
-            margin-top: 0;
-            font-size: 24px;
-            font-family: 'PPNeueBit', monospace;
-            color: #232323;
+            font-family: Plus Jakarta Sans, sans-serif;
+            font-size: 14px;
+            font-style: normal;
+            font-weight: 700;
+            line-height: 120%;
+            letter-spacing: 0;
+            margin-bottom: 24px;
           }
+
+          .connect-options {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+          }
+
           .connect-option {
             display: flex;
             align-items: center;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #232323;
-            cursor: pointer;
-            transition: background-color 0.3s;
+            border-radius: 12px;
+            margin: 1rem 0;
+            height: 56px;
           }
+
           .connect-option:hover {
-            background-color: #d4d4d4;
+            background: #efefef;
+            cursor: pointer;
           }
+
           .connect-option-icon {
-            flex: 0 0 40px;
-            height: 40px;
-            background-size: 24px 24px;
+            flex: 0 0 56px;
+            height: 56px;
+            border-radius: 12px;
+            background-size: 30px 30px;
             background-position: center;
             background-repeat: no-repeat;
-            margin-right: 12px;
           }
+
           .connect-option-detail {
-            text-align: left;
+            margin-left: 16px;
+            align-items: center;
           }
+
           .connect-option-name {
-            font-weight: bold;
-            margin: 0;
-            font-size: 18px;
-            font-family: 'PPNeueBit', monospace;
-            color: #232323;
+            font-family: Plus Jakarta Sans, sans-serif;
+            font-size: 16px;
+            font-style: normal;
+            font-weight: 700;
+            line-height: 120%;
+            letter-spacing: -0.16px;
+            margin: 4px 0;
+          }
+
+          .connect-option-name .recommended {
+            color: #8d90a5;
+            font-family: Plus Jakarta Sans, sans-serif;
+            font-size: 12px;
+            font-style: normal;
+            font-weight: 600;
+            line-height: 1.2;
+            letter-spacing: -0.24px;
+            vertical-align: top;
+            position: relative;
+            top: 3px;
+            left: 5px;
+          }
+
+          .connect-option-desc {
+            font-family: Plus Jakarta Sans, sans-serif;
+            font-size: 14px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 1.1;
+            letter-spacing: 0;
           }
           .connect-option-desc {
             margin: 0;
             font-size: 14px;
             color: #454545;
-            font-family: 'PPNeueBit', monospace;
           }
           .connect-option.disabled {
             opacity: 0.5;
@@ -211,19 +253,19 @@ class ArweaveWalletConnection extends HTMLElement {
       .querySelector("pixelated-button")
       .addEventListener("click", async () => await this.openModal());
 
-    if (!this.isMobile) {
-      this.shadowRoot
-        .getElementById("arconnectOption")
-        .addEventListener("click", () => this.connectWallet("ArConnect"));
-    }
+    // if (!this.isMobile) {
+    //   this.shadowRoot
+    //     .getElementById("arconnectOption")
+    //     .addEventListener("click", () => this.connectWallet("ArConnect"));
+    // }
 
     this.shadowRoot
       .getElementById("arweaveAppOption")
       .addEventListener("click", () => this.connectWallet("ArweaveApp"));
 
-    this.shadowRoot
-      .getElementById("othentOption")
-      .addEventListener("click", () => this.connectWallet("Othent"));
+    // this.shadowRoot
+    //   .getElementById("othentOption")
+    //   .addEventListener("click", () => this.connectWallet("Othent"));
 
     this.shadowRoot
       .getElementById("quickWalletOption")
@@ -238,17 +280,17 @@ class ArweaveWalletConnection extends HTMLElement {
         }
       });
 
-    const arconnectOption = this.shadowRoot.getElementById("arconnectOption");
-    if (!this.isMobile) {
-      arconnectOption.addEventListener("click", () =>
-        this.connectWallet("ArConnect"),
-      );
-    } else {
-      arconnectOption.addEventListener("click", (e) => {
-        e.preventDefault();
-        alert("ArConnect is not available on mobile devices.");
-      });
-    }
+    // const arconnectOption = this.shadowRoot.getElementById("arconnectOption");
+    // if (!this.isMobile) {
+    //   arconnectOption.addEventListener("click", () =>
+    //     this.connectWallet("ArConnect"),
+    //   );
+    // } else {
+    //   arconnectOption.addEventListener("click", (e) => {
+    //     e.preventDefault();
+    //     alert("ArConnect is not available on mobile devices.");
+    //   });
+    // }
   }
 
   async openModal() {
@@ -273,15 +315,15 @@ class ArweaveWalletConnection extends HTMLElement {
 
     try {
       switch (method) {
-        case "ArConnect":
-          await this.tryArConnect();
-          break;
+        // case "ArConnect":
+        //   await this.tryArConnect();
+        // break;
         case "ArweaveApp":
           await this.tryArweaveApp();
           break;
-        case "Othent":
-          await this.tryOthent();
-          break;
+        // case "Othent":
+        //   await this.tryOthent();
+        //   break;
         case "QuickWallet":
           await this.tryQuickWallet();
           break;
@@ -294,16 +336,16 @@ class ArweaveWalletConnection extends HTMLElement {
         console.log("Auth method:", this.authMethod);
 
         switch (this.authMethod) {
-          case "Othent":
-            console.log(othent);
-            this.signer = createDataItemSigner(othent);
-            break;
+          // case "Othent":
+          //   console.log(othent);
+          //   this.signer = createDataItemSigner(othent);
+          //   break;
           case "ArweaveApp":
             this.signer = createDataItemSigner(this.generatedWallet);
             break;
-          case "ArConnect":
-            this.signer = createDataItemSigner(window.arweaveWallet);
-            break;
+          // case "ArConnect":
+          //   this.signer = createDataItemSigner(window.arweaveWallet);
+          //   break;
           case "QuickWallet":
             this.signer = createDataItemSigner(QuickWallet);
             // this.signer = createDataItemSignerJWK(this.generatedWallet);

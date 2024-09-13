@@ -80,6 +80,7 @@ input {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: space-between;
     width: 100vw;
     height: 100vh;
     max-width: 600px;
@@ -95,16 +96,20 @@ input {
 }
 
 /* Game Board */
+
+/* Game Board */
 #game-board {
     display: grid;
     gap: 3px;
     width: 100%;
-    flex-grow: 1;
+    aspect-ratio: 7/10;
+    max-height: calc(100vh - 200px);
     background-color: #373e44;
     border: 5px solid #373e44;
     padding: 3px;
     image-rendering: pixelated;
     overflow: hidden;
+    margin: 10px 0;
 }
 
 /* Cell Styles */
@@ -152,23 +157,22 @@ input {
 #controls img {
     width: 33vw;
     height: auto;
-    margin: 0 1vw;
     cursor: pointer;
     transition: transform 0.1s ease;
-    object-fit: none;
-    object-position: center;
+    object-fit: cover;
 }
 
 #leftBtn {
-    object-position: -35px center;
+    object-position: 25% center;
 }
 
 #downBtn {
-    object-position: -35px center;
+    object-position: center;
+    margin-left: -4px;
 }
 
 #rightBtn {
-    object-position: -35px center;
+    object-position: 75% center;
 }
 
 #controls img:active {
@@ -181,6 +185,7 @@ input {
     flex-direction: column;
     align-items: center;
     gap: 5px;
+    padding: 0 10px;
     margin-bottom: 5px;
     font-size: 1em;
     position: relative;
@@ -192,12 +197,12 @@ input {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 2px;
+    gap: 12px;
     width: 100%;
 }
 
 #jackpot-words {
-    margin-top: 2rem;
+    margin-top: 3.5rem;
     position: relative;
 }
 
@@ -410,12 +415,6 @@ pixelated-button[disabled] {
     font-size: 4vw;
 }
 
-#preview-jackpot-words-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
 .button-container {
     display: flex;
     justify-content: center;
@@ -432,15 +431,32 @@ pixelated-button[disabled] {
     max-width: 300px;
 }
 
+.game-description {
+    font-size: 18px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #ffffff;
+    max-width: 80%;
+    line-height: 1.4;
+}
+
+#preview-jackpot-words-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
 .jackpot-multiplier {
     font-size: 6vw;
     color: #ffa500;
-    margin-right: 10px;
+    margin-bottom: 12px;
 }
 
 #preview-jackpot-words {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 5px;
 }
 
@@ -461,7 +477,7 @@ pixelated-button[disabled] {
     background-color: #1f2225;
     padding: 20px;
     border-radius: 10px;
-    max-width: 80%;
+    max-width: 40%;
     max-height: 80%;
     overflow-y: auto;
     color: #ffffff;
@@ -473,7 +489,7 @@ pixelated-button[disabled] {
 }
 
 .word-description-content p {
-    font-size: 16px;
+    font-size: 20px;
     line-height: 1.5;
 }
 
@@ -693,11 +709,23 @@ h3 {
 }
 
 /* Loading Indicator */
+#connectingMessage {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: #ffffff;
+    text-align: center;
+    z-index: 1000;
+}
+
 .loading-indicator {
     display: none;
     position: fixed;
     bottom: 20%;
     left: 50%;
+    top: auto;
     transform: translateX(-50%);
     z-index: 9999;
 }
@@ -774,10 +802,12 @@ h3 {
         height: 90vh;
         display: flex;
         flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
 
     #score {
-        font-size: 14vw;
+        font-size: 18vw;
         top: 5px;
         right: 5px;
     }
@@ -788,18 +818,13 @@ h3 {
         flex-shrink: 0;
     }
 
-    #jackpot-words,
-    #regular-words {
-        gap: 2px;
-    }
-
     .word-item {
         font-size: 0.8em;
         padding: 1px 3px;
     }
 
     #game-board {
-        height: 0;
+        max-height: calc(100vh - 250px);
         flex-grow: 1;
         width: 100%;
     }
@@ -811,15 +836,14 @@ h3 {
     #controls {
         flex-direction: row;
         justify-content: space-between;
-        margin-top: 10px;
         padding-bottom: 10px;
         flex-shrink: 0;
     }
 
     #controls img {
-        width: 35vw;
-        height: auto;
-        max-width: 120px;
+        width: 33vw;
+        height: 13vh;
+        max-width: 140px;
     }
 
     /* Ensure buttons are always visible */
@@ -831,7 +855,7 @@ h3 {
 
     #jackpot-words,
     #regular-words {
-        gap: 2px;
+        gap: 12px;
     }
 
     #jackpot-words::before {
@@ -853,6 +877,7 @@ h3 {
     #previewWordsScreen {
         height: 80vh;
     }
+
     #usernameInput,
     #emailInput,
     #submitSignup {
@@ -909,5 +934,15 @@ h3 {
         width: 100%;
         margin: 0;
         max-width: 300px;
+    }
+
+    .game-description {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+
+    .word-description-content {
+        font-size: 20px;
+        max-width: 80%;
     }
 }
