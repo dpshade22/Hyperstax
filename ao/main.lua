@@ -5,6 +5,7 @@ print("WordStack Handlers Script started")
 -- Initialize the data storage table
 WORD_STACK_PROCESS = "07JwXyhQrLCOdNbZw0Kqrg3FymVJaEM2-BzD_5-u9Ik";
 local userdata = {}
+local playcounts = {}
 
 function importData(addr, highScore)
     ao.send({
@@ -82,6 +83,91 @@ Handlers.add('AddUsername',
     end
 )
 
+Handlers.add('GetPlayCount',
+    Handlers.utils.hasMatchingTag('Action', 'GetPlayCount'),
+    function(msg)
+        print("GetPlayCount handler called")
+        local walletAddress = msg.Tags["Wallet-Address"]
+        if not walletAddress then
+            print("Error: Missing Wallet-Address")
+            ao.send({
+                Target = msg.From,
+                Action = "Response",
+                Tags = { ["Action"] = "GetPlayCount" },
+                Data = json.encode({ error = "Missing Wallet-Address" })
+            })
+            return
+        end
+
+        -- Initialize play count if it doesn't exist
+        if not playcounts[walletAddress] then
+            playcounts[walletAddress] = 0
+        end
+
+        local playCount = playcounts[walletAddress]
+        local canPlay = playCount < 3
+
+        local response = {
+            success = true,
+            walletAddress = walletAddress,
+            playCount = playCount,
+            canPlay = canPlay
+        }
+
+        print("Play count retrieved for wallet: " .. walletAddress .. ", Count: " .. playCount)
+
+        ao.send({
+            Target = msg.From,
+            Action = "Response",
+            Tags = { ["Action"] = "GetPlayCount" },
+            Data = json.encode(response)
+        })
+    end
+)
+
+Handlers.add('UpdatePlayCount',
+    Handlers.utils.hasMatchingTag('Action', 'UpdatePlayCount'),
+    function(msg)
+        print("UpdatePlayCount handler called")
+        local walletAddress = msg.From
+        if not walletAddress then
+            print("Error: Missing Wallet-Address")
+            ao.send({
+                Target = msg.From,
+                Action = "Response",
+                Tags = { ["Action"] = "UpdatePlayCount" },
+                Data = json.encode({ error = "Missing Wallet-Address" })
+            })
+            return
+        end
+
+        -- Initialize play count if it doesn't exist
+        if not playcounts[walletAddress] then
+            playcounts[walletAddress] = 0
+        end
+
+        -- Update play count
+        playcounts[walletAddress] = playcounts[walletAddress] + 1
+        local newPlayCount = playcounts[walletAddress]
+        local canPlay = newPlayCount < 3
+
+        local response = {
+            success = true,
+            walletAddress = walletAddress,
+            playCount = newPlayCount,
+            canPlay = canPlay
+        }
+
+        print("Play count updated for wallet: " .. walletAddress .. ", New count: " .. newPlayCount)
+
+        ao.send({
+            Target = msg.From,
+            Action = "Response",
+            Tags = { ["Action"] = "UpdatePlayCount" },
+            Data = json.encode(response)
+        })
+    end
+)
 -- Handler to update max score for a wallet
 Handlers.add('UpdateMaxScore',
     Handlers.utils.hasMatchingTag('Action', 'UpdateMaxScore'),

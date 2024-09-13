@@ -1,4 +1,6 @@
 import {
+  getPlayCount,
+  updatePlayCount,
   checkUserHasBazarProfile,
   addUsername,
   updateMaxScore,
@@ -52,6 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
       dropSound: "assets/DropSoundUp.mp3",
       wordMatch: "assets/WordMatch.wav",
       specialMatch: "assets/SpecialMatch.wav",
+      moveLetter: "assets/MoveLetter.mp3",
     };
 
     if (typeof Audio !== "undefined") {
@@ -60,12 +63,10 @@ document.addEventListener("DOMContentLoaded", () => {
         sounds[name].addEventListener("error", (e) => {
           console.error(`Error loading sound ${name}:`, e);
         });
-        sounds[name].addEventListener("canplaythrough", () => {
-          console.log(`Sound ${name} loaded successfully`);
-        });
+
         // Reduce volume of drop sound
-        if (name === "dropSound") {
-          sounds[name].volume = 0.3; // Adjust this value as needed (0.0 to 1.0)
+        if (name === "dropSound" || name === "moveLetter") {
+          sounds[name].volume = 0.25; // Adjust this value as needed (0.0 to 1.0)
         }
       });
     } else {
@@ -152,6 +153,22 @@ document.addEventListener("DOMContentLoaded", () => {
     "$AR",
   ];
 
+  const WORD_DESCRIPTIONS = {
+    ARWEAVE:
+      "The blockchain-based storage network underneath ao, designed for permanent data storage and accessibility.",
+    PARALLEL:
+      "Each process within ao can maintain an independent state, allowing an unlimited number of processes to run in parallel. Each process can customize its mechanisms and does not have to be constrained by the limitations of other processes (e.g. block sizes, block time, execution method, consensus, etc.)",
+    PERMA:
+      "Short for 'permanent' and 'permaweb', indicating the immutable and everlasting nature of data stored on Arweave.",
+    LUA: "A lightweight, high-level scripting language used for ao smart contracts.",
+    CU: "The CU handles computation, loading binary modules, and managing memory to ensure processes run with current data. It then returns the evaluation results to the MU for further message handling.",
+    SU: "The SU ensures messages are properly sequenced and stored on Arweave, maintaining order for consistent replay and verification of message evaluations.",
+    MU: "The MU acts as the entry point, receiving external messages and managing process communications. It processes outgoing messages and spawn requests from process outboxes and forwards them to the SU.",
+    AO: "Actor Oriented, a hyper-parallel computing environment built on Arweave.",
+    AI: "Artificial Intelligence, often integrated with ao for advanced computational tasks.",
+    $AR: "The native cryptocurrency token used within the Arweave network.",
+  };
+
   const directions = [
     [0, 1],
     [1, 0],
@@ -166,35 +183,54 @@ document.addEventListener("DOMContentLoaded", () => {
   const emailInput = document.getElementById("emailInput");
 
   function validateInputs() {
+    console.log("Validating inputs...");
+
     const username = usernameInput.value.trim();
     const email = emailInput.value.trim();
 
-    const usernameRequired =
-      document.getElementById("usernameField").style.display !== "none";
-    const emailRequired =
-      document.getElementById("emailField").style.display !== "none";
+    console.log("Username:", username);
+    console.log("Email:", email);
+
+    const usernameField = document.getElementById("usernameInput");
+    const emailField = document.getElementById("emailInput");
+
+    const usernameRequired = usernameField.style.display != "none";
+    const emailRequired = emailField.style.display != "none";
+
+    console.log("Username field display:", usernameField.style.display);
+    console.log("Email field display:", emailField.style.display);
+    console.log("Username required:", usernameRequired);
+    console.log("Email required:", emailRequired);
 
     let isValid = true;
 
     if (usernameRequired) {
+      console.log("Validating username...");
       if (username) {
+        console.log("Username is valid");
         usernameInput.classList.remove("invalid");
       } else {
+        console.log("Username is invalid");
         usernameInput.classList.add("invalid");
         isValid = false;
       }
     }
 
     if (emailRequired) {
+      console.log("Validating email...");
       if (email && isValidEmail(email)) {
+        console.log("Email is valid");
         emailInput.classList.remove("invalid");
       } else {
+        console.log("Email is invalid");
         emailInput.classList.add("invalid");
         isValid = false;
       }
     }
 
+    console.log("Is form valid:", isValid);
     submitSignupBtn.disabled = !isValid;
+    console.log("Submit button disabled:", submitSignupBtn.disabled);
 
     return isValid;
   }
@@ -341,10 +377,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  letsPlayBtn.addEventListener("click", () => {
+  letsPlayBtn.addEventListener("click", async () => {
     if (!hasSeenPreviewWords) {
       showPreviewWords();
     } else {
+      const { playCount, canPlay } = await getPlayCount(
+        walletConnection,
+        walletConnection.walletAddress,
+      );
+      if (canPlay) {
+        startGame();
+      } else {
+        alert(
+          "You have reached the maximum number of plays (3). Thank you for playing!",
+        );
+      }
       startGame();
     }
   });
@@ -366,9 +413,26 @@ document.addEventListener("DOMContentLoaded", () => {
   rightBtn.addEventListener("click", () => moveLetter("right"));
   playAgainBtn.addEventListener("click", resetGame);
 
-  function startGame() {
+  async function startGame() {
     Object.values(sounds).forEach((sound) => sound.load());
     previewWordsScreen.style.display = "none";
+    const { playCount, canPlay } = await getPlayCount(
+      walletConnection,
+      walletConnection.walletAddress,
+    );
+
+    if (!canPlay) {
+      alert(
+        "You have reached the maximum number of plays (3). Thank you for playing!",
+      );
+      console.log("Back to menu clicked");
+      leaderboardScreen.style.display = "none";
+      previewWordsScreen.style.display = "none";
+      menuScreen.style.display = "block";
+      const title = document.querySelector(".game-title");
+      title.style.display = "block";
+      return;
+    }
 
     if (walletConnection.walletAddress && currentUsername) {
       isFirstLetter = true;
@@ -425,9 +489,18 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateUserInfo() {
     const userInfoElement = document.getElementById("userInfo");
     if (walletConnection.walletAddress && currentUsername) {
-      const shortWallet = walletConnection.walletAddress.slice(-4);
-      userInfoElement.textContent = `${currentUsername}#${shortWallet}`;
-      userInfoElement.style.display = "block";
+      getPlayCount(walletConnection, walletConnection.walletAddress)
+        .then(({ playCount }) => {
+          const remainingPlays = Math.max(0, 3 - playCount);
+          const shortWallet = walletConnection.walletAddress.slice(-4);
+          userInfoElement.textContent = `${currentUsername}#${shortWallet} | Plays left: ${remainingPlays}`;
+          userInfoElement.style.display = "block";
+        })
+        .catch((error) => {
+          console.error("Error getting user info:", error);
+          userInfoElement.textContent = `${currentUsername} | Plays left: Unknown`;
+          userInfoElement.style.display = "block";
+        });
     } else {
       userInfoElement.style.display = "none";
     }
@@ -562,15 +635,14 @@ document.addEventListener("DOMContentLoaded", () => {
         isFirstLetter = false;
       }
     } else {
-      if (currentPosition.y == 0)
-        if (currentPosition.y >= 0) {
-          placeLetter();
-          if (!isProcessingWords) {
-            let match = checkWords();
-            if (hasHitFloor(currentPosition.x, currentPosition.y) && !match)
-              playSound("dropSound");
-          }
+      if (currentPosition.y >= 0) {
+        placeLetter();
+        if (!isProcessingWords) {
+          let match = checkWords();
+          if (hasHitFloor(currentPosition.x, currentPosition.y) && !match)
+            playSound("dropSound");
         }
+      }
       spawnLetter();
     }
     drawBoard();
@@ -791,11 +863,13 @@ document.addEventListener("DOMContentLoaded", () => {
       case "left":
         if (canMoveTo(currentPosition.x - 1, currentPosition.y)) {
           currentPosition.x--;
+          playSound("moveLetter");
         }
         break;
       case "right":
         if (canMoveTo(currentPosition.x + 1, currentPosition.y)) {
           currentPosition.x++;
+          playSound("moveLetter");
         }
         break;
       case "down":
@@ -921,17 +995,50 @@ document.addEventListener("DOMContentLoaded", () => {
     jackpotWords.sort((a, b) => b.length - a.length);
 
     jackpotWords.forEach((word) => {
-      const wordElement = document.createElement("span");
-      wordElement.textContent = word;
-      wordElement.classList.add("word-item", "jackpot-word");
+      const wordElement = createWordElement(word, true);
       jackpotWordsElement.appendChild(wordElement);
     });
 
     regularWords.forEach((word) => {
-      const wordElement = document.createElement("span");
-      wordElement.textContent = word;
-      wordElement.classList.add("word-item");
+      const wordElement = createWordElement(word, false);
       regularWordsElement.appendChild(wordElement);
+    });
+  }
+
+  function createWordElement(word, isJackpot) {
+    const wordElement = document.createElement("span");
+    wordElement.textContent = word;
+    wordElement.classList.add("word-item");
+    if (isJackpot) {
+      wordElement.classList.add("jackpot-word");
+    }
+    wordElement.addEventListener("click", () => showWordDescription(word));
+    return wordElement;
+  }
+
+  function showWordDescription(word) {
+    const description = WORD_DESCRIPTIONS[word] || "No description available.";
+    const overlay = document.createElement("div");
+    overlay.classList.add("word-description-overlay");
+    overlay.innerHTML = `
+      <div class="word-description-content">
+        <h3>${word}</h3>
+        <p>${description}</p>
+        <button class="close-description">Close</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    overlay
+      .querySelector(".close-description")
+      .addEventListener("click", () => {
+        document.body.removeChild(overlay);
+      });
+
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) {
+        document.body.removeChild(overlay);
+      }
     });
   }
 
@@ -959,6 +1066,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const userData = JSON.parse(dryRunResult.Messages[0].Data);
         currentMaxScore = userData.maxScore || 0;
       }
+
+      await updatePlayCount(walletConnection, walletConnection.walletAddress);
+      updateUserInfo();
 
       if (score > currentMaxScore) {
         await updateMaxScore(
@@ -1007,37 +1117,54 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Clearing game state");
   }
 
-  function resetGame() {
-    isFirstLetter = true;
-    hideModal();
-    document
-      .getElementById("gameContainer")
-      .classList.remove("blur-background");
-    clearGameState();
+  async function resetGame() {
+    try {
+      const { playCount, canPlay } = await getPlayCount(
+        walletConnection,
+        walletConnection.walletAddress,
+      );
 
-    // Clear any existing game loop
-    clearInterval(gameLoop);
+      if (!canPlay) {
+        alert(
+          "You have reached the maximum number of plays. Returning to main menu.",
+        );
+        backToMenuFromModal();
+      } else {
+        isFirstLetter = true;
+        hideModal();
+        document
+          .getElementById("gameContainer")
+          .classList.remove("blur-background");
+        clearGameState();
 
-    // Reset the board
-    initializeBoard();
+        // Clear any existing game loop
+        clearInterval(gameLoop);
 
-    // Redraw the empty board
-    drawBoard();
+        // Reset the board
+        initializeBoard();
 
-    // Spawn a new letter
-    spawnLetter();
+        // Redraw the empty board
+        drawBoard();
 
-    // Start a new game loop
-    gameLoop = setInterval(updateGame, currentGameSpeed);
+        // Spawn a new letter
+        spawnLetter();
 
-    // Re-add event listeners
-    document.addEventListener("keydown", handleKeyPress);
-    window.addEventListener("resize", resizeBoard);
+        // Start a new game loop
+        gameLoop = setInterval(updateGame, currentGameSpeed);
 
-    // Make sure the game container is visible and not blurred
-    gameContainer.style.display = "flex";
-    gameContainer.classList.remove("blur-background");
+        // Re-add event listeners
+        document.addEventListener("keydown", handleKeyPress);
+        window.addEventListener("resize", resizeBoard);
 
-    updateUserInfo();
+        // Make sure the game container is visible and not blurred
+        gameContainer.style.display = "flex";
+        gameContainer.classList.remove("blur-background");
+
+        updateUserInfo();
+      }
+    } catch (error) {
+      console.error("Error checking play count:", error);
+      alert("An error occurred. Please try again.");
+    }
   }
 });

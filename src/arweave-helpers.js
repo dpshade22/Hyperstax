@@ -12,6 +12,61 @@ export async function addWalletAddress(walletConnection, walletAddress) {
   ]);
 }
 
+export async function getPlayCount(walletConnection, walletAddress) {
+  try {
+    console.log("Getting play count for wallet:", walletAddress);
+
+    const result = await walletConnection.dryRunArweave([
+      { name: "Action", value: "GetPlayCount" },
+      { name: "Wallet-Address", value: walletAddress },
+    ]);
+
+    console.log("Get play count result:", result);
+
+    if (result.Messages && result.Messages.length > 0) {
+      const message = JSON.parse(result.Messages[0].Data);
+      console.log("Parsed message:", message);
+      return {
+        playCount: message.playCount,
+        canPlay: message.playCount < 3,
+      };
+    } else {
+      console.error("No messages returned from dry run");
+      throw new Error("No messages returned from dry run");
+    }
+  } catch (error) {
+    console.error("Error in getPlayCount:", error);
+    throw new Error(`Failed to get play count: ${error.message}`);
+  }
+}
+
+export async function updatePlayCount(walletConnection, walletAddress) {
+  try {
+    console.log("Updating play count for wallet:", walletAddress);
+
+    const result = await walletConnection.sendMessageToArweave([
+      { name: "Action", value: "UpdatePlayCount" },
+    ]);
+
+    console.log("Update play count result:", result);
+
+    if (result.Messages && result.Messages.length > 0) {
+      const message = JSON.parse(result.Messages[0].Data);
+      console.log("Parsed message:", message);
+      return {
+        playCount: message.playCount,
+        canPlay: message.playCount < 3,
+      };
+    } else {
+      console.error("No messages returned from update");
+      throw new Error("No messages returned from update");
+    }
+  } catch (error) {
+    console.error("Error in updatePlayCount:", error);
+    throw new Error(`Failed to update play count: ${error.message}`);
+  }
+}
+
 // Helper function to add username
 export async function addUsername(walletConnection, walletAddress, username) {
   return await walletConnection.sendMessageToArweave([
@@ -28,8 +83,6 @@ export async function updateMaxScore(walletConnection, walletAddress, score) {
     { name: "Wallet-Address", value: walletAddress },
     { name: "Score", value: score.toString() },
   ]);
-
-  await importScore(walletConnection, walletAddress, score);
 }
 
 // Helper function to get user data
@@ -75,25 +128,6 @@ export async function checkUserHasBazarProfile(walletConnection, address) {
     return false; // Assume no profile exists in case of unexpected response
   } catch (error) {
     console.error("Error during dry run:", error);
-    throw error;
-  }
-}
-
-export async function importScore(walletConnection, walletAddress, score) {
-  try {
-    const result = await walletConnection.sendMessageToArweave(
-      [
-        { name: "Action", value: "ImportData" },
-        { name: "Method", value: "merge" },
-      ],
-      JSON.stringify({ [walletAddress]: score }),
-      WORD_STACK_PROCESS,
-    );
-
-    console.log("Score successfully imported to Longview Process:", result);
-    return result;
-  } catch (error) {
-    console.error("Error importing score:", error);
     throw error;
   }
 }
