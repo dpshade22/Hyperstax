@@ -3,7 +3,17 @@ local json = require("json")
 print("WordStack Handlers Script started")
 
 -- Initialize the data storage table
+WORD_STACK_PROCESS = "07JwXyhQrLCOdNbZw0Kqrg3FymVJaEM2-BzD_5-u9Ik";
 local userdata = {}
+
+function importData(addr, highScore)
+    ao.send({
+        Target = WORD_STACK_PROCESS,
+        Action = "ImportData",
+        Tags = { ["Method"] = "merge" },
+        Data = json.encode({ [addr] = highScore })
+    })
+end
 
 -- Handler to add a wallet address
 Handlers.add('AddWalletAddress',
@@ -95,6 +105,7 @@ Handlers.add('UpdateMaxScore',
             userdata[walletAddress] = { username = nil, maxScore = score }
         elseif score > userdata[walletAddress].maxScore then
             userdata[walletAddress].maxScore = score
+            importData(walletAddress, score)
         end
 
         print("Max score updated: " .. score .. " for wallet: " .. walletAddress)
@@ -147,7 +158,7 @@ Handlers.add('GetLeaderboard',
     Handlers.utils.hasMatchingTag('Action', 'GetLeaderboard'),
     function(msg)
         print("GetLeaderboard handler called")
-        local limit = tonumber(msg.Tags["Limit"]) or 10  -- Default to top 10 if not specified
+        local limit = tonumber(msg.Tags["Limit"]) or 10 -- Default to top 10 if not specified
 
         -- Create a list of all users with their scores
         local leaderboard = {}

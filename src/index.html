@@ -56,14 +56,39 @@
                     id="showLeaderboard"
                     text="Leaderboard"
                 ></pixelated-button>
+                <div style="padding: 7px 0"></div>
+                <pixelated-button
+                    id="previewWords"
+                    text="Preview Words"
+                ></pixelated-button>
+            </div>
+            <div id="previewWordsScreen" style="display: none">
+                <h1 class="game-title">Word Preview</h1>
+                <div id="previewWordList"></div>
+                <div class="button-container">
+                    <pixelated-button
+                        class="backToMenu"
+                        text="Back to Menu"
+                    ></pixelated-button>
+                    <pixelated-button
+                        id="startGameFromPreview"
+                        text="Let's Play"
+                    ></pixelated-button>
+                </div>
             </div>
             <div id="leaderboardScreen" style="display: none">
                 <h1 class="game-title">Leaderboard</h1>
                 <div id="leaderboardList"></div>
-                <pixelated-button
-                    id="backToMenu"
-                    text="Back to Menu"
-                ></pixelated-button>
+                <div class="button-container">
+                    <pixelated-button
+                        class="backToMenu"
+                        text="Back to Menu"
+                    ></pixelated-button>
+                    <pixelated-button
+                        id="startGameFromPreview"
+                        text="Let's Play"
+                    ></pixelated-button>
+                </div>
             </div>
         </div>
         <div id="gameContainer" style="display: none">

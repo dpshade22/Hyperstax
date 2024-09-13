@@ -26,7 +26,7 @@ import { ArweaveWebWallet } from "arweave-wallet-connector";
 // const arweave = Arweave.init({});
 
 const argql = arGql();
-const PROCESS_ID = "VLC0LfPvVkyq8rRjmFSmBlSl6BkLyijsjTS2BNmXByw";
+const PROCESS_ID = "ZtS3h94Orj7jT56m3uP-n7iC5_56Z9LL24Vx21LW03k";
 
 class ArweaveWalletConnection extends HTMLElement {
   constructor() {

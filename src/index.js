@@ -17,14 +17,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const homepage = document.getElementById("homepage");
   const gameContainer = document.getElementById("gameContainer");
   const connectWalletScreen = document.getElementById("connectWalletScreen");
-  const usernameScreen = document.getElementById("usernameScreen");
   const menuScreen = document.getElementById("menuScreen");
   const leaderboardScreen = document.getElementById("leaderboardScreen");
   const usernameInput = document.getElementById("usernameInput");
   const submitSignupBtn = document.getElementById("submitSignup");
   const letsPlayBtn = document.getElementById("letsPlay");
   const showLeaderboardBtn = document.getElementById("showLeaderboard");
-  const backToMenuBtn = document.getElementById("backToMenu");
+  const backToMenuBtns = document.querySelectorAll(".backToMenu");
   const walletConnection = document.querySelector("arweave-wallet-connection");
   const gameBoard = document.getElementById("game-board");
   const scoreDisplay = document.getElementById("score");
@@ -37,13 +36,54 @@ document.addEventListener("DOMContentLoaded", () => {
   const playAgainBtn = document.getElementById("playAgainBtn");
   const loadingIndicator = document.getElementById("loadingIndicator");
   const modalContent = document.querySelector(".modal-content");
+  const previewWordsScreen = document.getElementById("previewWordsScreen");
+  const previewWordsBtn = document.getElementById("previewWords");
+  const startGameFromPreviewBtn = document.getElementById(
+    "startGameFromPreview",
+  );
 
-  function scrollToBottom() {
-    // if (window.innerWidth <= 768) {
-    //   // Check if it's a mobile device
-    //   const gameBoard = document.getElementById("game-board");
-    //   gameBoard.scrollTop = gameBoard.scrollHeight;
-    // }
+  let isFirstLetter = true;
+  let hasSeenPreviewWords = false;
+
+  const sounds = {};
+
+  function setupSounds() {
+    const soundFiles = {
+      dropSound: "assets/DropSoundUp.mp3",
+      wordMatch: "assets/WordMatch.wav",
+      specialMatch: "assets/SpecialMatch.wav",
+    };
+
+    if (typeof Audio !== "undefined") {
+      Object.entries(soundFiles).forEach(([name, path]) => {
+        sounds[name] = new Audio(path);
+        sounds[name].addEventListener("error", (e) => {
+          console.error(`Error loading sound ${name}:`, e);
+        });
+        sounds[name].addEventListener("canplaythrough", () => {
+          console.log(`Sound ${name} loaded successfully`);
+        });
+        // Reduce volume of drop sound
+        if (name === "dropSound") {
+          sounds[name].volume = 0.3; // Adjust this value as needed (0.0 to 1.0)
+        }
+      });
+    } else {
+      console.warn("Audio is not supported in this environment");
+    }
+  }
+
+  setupSounds();
+
+  function playSound(soundName) {
+    if (sounds[soundName] && sounds[soundName].play) {
+      sounds[soundName].currentTime = 0;
+      sounds[soundName].play().catch((error) => {
+        console.error(`Error playing sound ${soundName}:`, error);
+      });
+    } else {
+      console.warn(`Sound ${soundName} not found or not playable`);
+    }
   }
 
   function showModalLoading() {
@@ -126,7 +166,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const emailInput = document.getElementById("emailInput");
 
   function validateInputs() {
-
     const username = usernameInput.value.trim();
     const email = emailInput.value.trim();
 
@@ -162,6 +201,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   usernameInput.addEventListener("input", validateInputs);
   emailInput.addEventListener("input", validateInputs);
+  previewWordsBtn.addEventListener("click", showPreviewWords);
+  startGameFromPreviewBtn.addEventListener("click", startGame);
 
   walletConnection.addEventListener("walletConnected", async (event) => {
     showLoading();
@@ -300,13 +341,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  letsPlayBtn.addEventListener("click", startGame);
+  letsPlayBtn.addEventListener("click", () => {
+    if (!hasSeenPreviewWords) {
+      showPreviewWords();
+    } else {
+      startGame();
+    }
+  });
   showLeaderboardBtn.addEventListener("click", showLeaderboard);
-  backToMenuBtn.addEventListener("click", () => {
-    leaderboardScreen.style.display = "none";
-    menuScreen.style.display = "block";
-    const title = document.querySelector(".game-title");
-    title.style.display = "block";
+  backToMenuBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      console.log("Back to menu clicked");
+      leaderboardScreen.style.display = "none";
+      previewWordsScreen.style.display = "none";
+      menuScreen.style.display = "block";
+      const title = document.querySelector(".game-title");
+      title.style.display = "block";
+    });
   });
   backToMenuFromModalBtn.addEventListener("click", backToMenuFromModal);
 
@@ -316,8 +367,11 @@ document.addEventListener("DOMContentLoaded", () => {
   playAgainBtn.addEventListener("click", resetGame);
 
   function startGame() {
-    console.log(currentUsername);
+    Object.values(sounds).forEach((sound) => sound.load());
+    previewWordsScreen.style.display = "none";
+
     if (walletConnection.walletAddress && currentUsername) {
+      isFirstLetter = true;
       homepage.style.display = "none";
       gameContainer.style.display = "flex";
       clearGameState();
@@ -434,8 +488,8 @@ document.addEventListener("DOMContentLoaded", () => {
           <div id="regular-words"></div>
       `;
 
-    const jackpotWordsElement = document.getElementById("jackpot-words");
-    const regularWordsElement = document.getElementById("regular-words");
+    const jackpotWordsElement = wordListElement.querySelector("#jackpot-words");
+    const regularWordsElement = wordListElement.querySelector("#regular-words");
 
     const jackpotWords = WORDS.filter((word) => word.length >= 4);
     const regularWords = WORDS.filter((word) => word.length < 4);
@@ -490,8 +544,6 @@ document.addEventListener("DOMContentLoaded", () => {
         gameBoard.children[currentPosition.y * BOARD_WIDTH + currentPosition.x];
       currentCell.textContent = currentLetter;
     }
-
-    scrollToBottom();
   }
 
   function spawnLetter() {
@@ -505,18 +557,30 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateGame() {
     if (canMoveTo(currentPosition.x, currentPosition.y + 1)) {
       currentPosition.y++;
-    } else {
-      if (currentPosition.y >= 0) {
-        // Only place the letter if it's within the visible board
-        placeLetter();
-        if (!isProcessingWords) {
-          checkWords();
-        }
+      if (isFirstLetter) {
+        playSound("dropSound");
+        isFirstLetter = false;
       }
+    } else {
+      if (currentPosition.y == 0)
+        if (currentPosition.y >= 0) {
+          placeLetter();
+          if (!isProcessingWords) {
+            let match = checkWords();
+            if (hasHitFloor(currentPosition.x, currentPosition.y) && !match)
+              playSound("dropSound");
+          }
+        }
       spawnLetter();
     }
     drawBoard();
-    scrollToBottom();
+  }
+
+  function hasHitFloor(x, y) {
+    return (
+      y === BOARD_HEIGHT - 1 ||
+      (y < BOARD_HEIGHT - 1 && board[y + 1][x].letter !== "")
+    );
   }
 
   function canMoveTo(x, y) {
@@ -575,8 +639,10 @@ document.addEventListener("DOMContentLoaded", () => {
     wordsToProcess = uniqueWordsFound;
     if (uniqueWordsFound.length > 0) {
       processFoundWords(uniqueWordsFound);
+      return true;
     } else {
       isProcessingWords = false;
+      return false;
     }
   }
 
@@ -586,6 +652,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const flashPromises = wordsFound.map(async ({ x, y, word, dx, dy }) => {
       highlightWord(word);
+      if (word.length >= 4) {
+        playSound("specialMatch");
+      } else {
+        playSound("wordMatch");
+      }
       return flashWord(x, y, word.length, dx, dy).then(() => {
         flashedWordsCount++;
         if (flashedWordsCount === totalWords) {
@@ -728,14 +799,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         break;
       case "down":
+        let wordMatched = false;
         while (canMoveTo(currentPosition.x, currentPosition.y + 1)) {
           currentPosition.y++;
         }
         placeLetter();
         if (!isProcessingWords) {
-          checkWords();
+          wordMatched = checkWords();
         }
         spawnLetter();
+        if (!wordMatched) {
+          playSound("dropSound");
+        }
         break;
     }
     drawBoard();
@@ -820,6 +895,46 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 4000);
   }
 
+  function showPreviewWords() {
+    hasSeenPreviewWords = true;
+    menuScreen.style.display = "none";
+    previewWordsScreen.style.display = "flex";
+    const previewWordList = document.getElementById("previewWordList");
+    previewWordList.innerHTML = `
+      <div id="preview-jackpot-words-container">
+        <span class="jackpot-multiplier">x5</span>
+        <div id="preview-jackpot-words"></div>
+      </div>
+      <div id="preview-regular-words"></div>
+    `;
+
+    const jackpotWordsElement = previewWordList.querySelector(
+      "#preview-jackpot-words",
+    );
+    const regularWordsElement = previewWordList.querySelector(
+      "#preview-regular-words",
+    );
+
+    const jackpotWords = WORDS.filter((word) => word.length >= 4);
+    const regularWords = WORDS.filter((word) => word.length < 4);
+
+    jackpotWords.sort((a, b) => b.length - a.length);
+
+    jackpotWords.forEach((word) => {
+      const wordElement = document.createElement("span");
+      wordElement.textContent = word;
+      wordElement.classList.add("word-item", "jackpot-word");
+      jackpotWordsElement.appendChild(wordElement);
+    });
+
+    regularWords.forEach((word) => {
+      const wordElement = document.createElement("span");
+      wordElement.textContent = word;
+      wordElement.classList.add("word-item");
+      regularWordsElement.appendChild(wordElement);
+    });
+  }
+
   function showModal() {
     const modal = document.getElementById("gameOverModal");
     modal.style.display = "flex";
@@ -893,6 +1008,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function resetGame() {
+    isFirstLetter = true;
     hideModal();
     document
       .getElementById("gameContainer")
