@@ -29,6 +29,7 @@ body,
 button,
 input {
     font-family: "PPNeueBit 2";
+    line-height: 0.75;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -232,7 +233,7 @@ input {
 /* Wallet Connection Button */
 arweave-wallet-connection {
     display: block;
-    margin-bottom: 20px;
+    width: 100%;
 }
 
 arweave-wallet-connection::part(button) {
@@ -305,16 +306,30 @@ arweave-wallet-connection::part(button):active {
     text-align: center;
 }
 
-#homepage h1 {
+.wallet-screen-image {
+    flex: 1;
+    width: 100%;
+    background-size: 120% auto;
+    background-image: url("assets/title-screen.png");
+    background-position: center bottom;
+}
+
+.wallet-screen-content {
     color: #ffffff;
-    margin-bottom: 30px;
-    font-size: 4vh;
+    text-align: center;
+    width: calc(100% - 32px);
+    margin-top: 40px;
+    padding: 20px 16px;
 }
 
 .game-title {
-    margin-bottom: 30px;
-    font-size: 4vh;
-    text-align: center;
+    margin: 0 0 8px;
+    font-size: 72px;
+}
+
+.game-subtitle {
+    margin: 0 0 72px;
+    font-size: 32px;
 }
 
 #connectWalletScreen,
@@ -327,7 +342,7 @@ arweave-wallet-connection::part(button):active {
     height: 100vh;
     width: 100%;
     text-align: center;
-    width: 80%;
+    max-width: 580px;
 }
 
 #usernameInput,
@@ -787,7 +802,7 @@ h3 {
 @media (max-width: 768px) {
     body {
         width: 100vw;
-        height: 90vh;
+        /* height: 90vh; */
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -853,12 +868,6 @@ h3 {
     .word-item {
         font-size: 5vw;
         padding: 2px 5px;
-    }
-
-    #homepage h1 {
-        margin-top: 0;
-        padding: 1rem;
-        font-size: 16vw;
     }
 
     #leaderboardScreen,

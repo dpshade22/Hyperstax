@@ -44,7 +44,6 @@ class PixelatedButton extends HTMLElement {
         .pixelated-container {
           position: relative;
           width: 100%;
-          max-width: 400px;
           margin-left: 7px;
           cursor: pointer;
         }
