@@ -155,25 +155,27 @@ input {
     max-width: 600px;
 }
 
-#controls img {
+#controls div {
     width: 33vw;
-    height: auto;
+    aspect-ratio: 15/10;
     cursor: pointer;
     transition: transform 0.1s ease;
     object-fit: cover;
+
+    background-position: center;
+    background-size: contain;
 }
 
 #leftBtn {
-    object-position: 25% center;
+    background-image: url("assets/left-button.svg");
 }
 
 #downBtn {
-    object-position: center;
-    margin-left: -4px;
+    background-image: url("assets/down-button.svg");
 }
 
 #rightBtn {
-    object-position: 75% center;
+    background-image: url("assets/right-button.svg");
 }
 
 #controls img:active {
