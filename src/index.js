@@ -164,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const LETTERS = "AAEIOOPRSWVLMMCUU$";
   const INITIAL_GAME_SPEED = 700;
   const SPEED_INCREASE_FACTOR = 0.85;
-  const LETTERS_PER_SPEED_INCREASE = 4;
+  const LETTERS_PER_SPEED_INCREASE = 5;
 
   // Game state variables
   let currentGameSpeed = INITIAL_GAME_SPEED;
@@ -860,7 +860,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function increaseSpeed() {
     currentGameSpeed *= SPEED_INCREASE_FACTOR;
-    currentGameSpeed = Math.max(currentGameSpeed, 150);
+    currentGameSpeed = Math.max(currentGameSpeed, 200);
     console.log("Game speed increased to:", currentGameSpeed);
   }
 
