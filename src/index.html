@@ -4,7 +4,7 @@
         <meta charset="UTF-8" />
         <meta
             name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
         />
         <title>Hyperstax</title>
         <link rel="stylesheet" href="styles.css" />
@@ -23,6 +23,7 @@
         <div id="homepage">
             <div id="connectWalletScreen">
                 <h1 class="game-title">Hyperstax</h1>
+                <h2 class="game-subtitle"></h2>
                 <arweave-wallet-connection></arweave-wallet-connection>
             </div>
             <div id="signupScreen" style="display: none">
@@ -64,6 +65,20 @@
                     id="previewWords"
                     text="Preview Words"
                 ></pixelated-button> -->
+                <!-- <div id="helpIcon">?</div>
+                <div id="helpModal" class="modal">
+                    <div class="modal-content">
+                        <h2>Help</h2>
+                        <p>
+                            Click the button below to download your keyfile.
+                            Keep it safe!
+                        </p>
+                        <pixelated-button
+                            id="downloadKeyfile"
+                            text="Download Keyfile"
+                        ></pixelated-button>
+                    </div>
+                </div> -->
             </div>
             <div id="previewWordsScreen" style="display: none">
                 <h1 class="game-title">Word Preview</h1>
@@ -87,10 +102,10 @@
                         class="backToMenu"
                         text="Back to Menu"
                     ></pixelated-button>
-                    <pixelated-button
+                    <!-- <pixelated-button
                         id="startGameFromPreview"
                         text="Let's Play"
-                    ></pixelated-button>
+                    ></pixelated-button> -->
                 </div>
             </div>
         </div>
