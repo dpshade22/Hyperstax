@@ -22,20 +22,21 @@ body {
     height: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden;
+    overflow-x: hidden;
+}
+
+body {
+    font-family: "PPNeueBit 2";
+    line-height: 0.75;
 }
 
 body,
 button,
 input {
-    font-family: "PPNeueBit 2";
-    line-height: 0.75;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
     margin: 0;
-    overflow-x: hidden;
     background-color: #1f2225;
     color: #ffffff;
     -webkit-touch-callout: none;
@@ -48,6 +49,10 @@ input {
 
 * {
     touch-action: manipulation;
+}
+
+#gameWrapper {
+    width: 100%;
 }
 
 /* User Info */
@@ -82,8 +87,8 @@ input {
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     max-width: 600px;
     margin: 0 auto;
     padding: 10px;
@@ -104,7 +109,7 @@ input {
     gap: 3px;
     width: 100%;
     aspect-ratio: 7/10;
-    max-height: calc(100vh - 200px);
+    max-height: calc(100% - 200px);
     background-color: #373e44;
     border: 5px solid #373e44;
     padding: 3px;
@@ -164,6 +169,8 @@ input {
 
     background-position: center;
     background-size: contain;
+
+    -webkit-tap-highlight-color: transparent;
 }
 
 #leftBtn {
@@ -303,7 +310,7 @@ arweave-wallet-connection::part(button):active {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    height: 100%;
     width: 100%;
     text-align: center;
 }
@@ -341,7 +348,7 @@ arweave-wallet-connection::part(button):active {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    height: 100%;
     width: 100%;
     text-align: center;
     max-width: 580px;
@@ -400,7 +407,7 @@ pixelated-button[disabled] {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    height: 100vh;
+    height: 100%;
     padding: 20px;
     box-sizing: border-box;
 }
@@ -539,7 +546,7 @@ pixelated-button[disabled] {
 #leaderboardScreen {
     display: flex;
     flex-direction: column;
-    height: 90vh;
+    height: 90%;
     max-width: 600px;
     padding-top: 20px;
 }
@@ -803,8 +810,6 @@ h3 {
 /* Mobile Styles */
 @media (max-width: 768px) {
     body {
-        width: 100vw;
-        /* height: 90vh; */
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -829,7 +834,7 @@ h3 {
     }
 
     #game-board {
-        max-height: calc(100vh - 250px);
+        max-height: calc(100% - 250px);
         flex-grow: 1;
         width: 100%;
     }
@@ -845,9 +850,7 @@ h3 {
         flex-shrink: 0;
     }
 
-    #controls img {
-        width: 33vw;
-        height: 13vh;
+    #controls div {
         max-width: 140px;
     }
 
@@ -874,7 +877,7 @@ h3 {
 
     #leaderboardScreen,
     #previewWordsScreen {
-        height: 80vh;
+        height: 80%;
     }
 
     #usernameInput,

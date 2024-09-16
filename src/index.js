@@ -513,9 +513,12 @@ document.addEventListener("DOMContentLoaded", () => {
   playAgainBtn.addEventListener("click", resetGame);
 
   function adjustHeight() {
-    const gameContainer = document.getElementById("gameContainer");
+    // const gameContainer = document.getElementById("gameContainer");
     const windowHeight = window.innerHeight;
-    gameContainer.style.height = `${windowHeight}px`;
+    const gameWrapper = document.getElementById("gameWrapper");
+
+    gameWrapper.style.height = `${windowHeight}px`;
+    // gameContainer.style.height = `${windowHeight}px`;
   }
 
   window.addEventListener("load", adjustHeight);
