@@ -1,892 +1,1627 @@
 diff --git a/diff.txt b/diff.txt
-index 9108196..e69de29 100644
+index 5798336..e69de29 100644
 --- a/diff.txt
 +++ b/diff.txt
-@@ -1,651 +0,0 @@
--diff --git a/src/arweave-helpers.js b/src/arweave-helpers.js
--index 978da5c..4f5d495 100644
----- a/src/arweave-helpers.js
--+++ b/src/arweave-helpers.js
--@@ -20,11 +20,13 @@ export async function addUsername(walletConnection, walletAddress, username) {
--
-- // Helper function to update max score
-- export async function updateMaxScore(walletConnection, walletAddress, score) {
---  return await walletConnection.sendMessageToArweave([
--+  await walletConnection.sendMessageToArweave([
--     { name: "Action", value: "UpdateMaxScore" },
--     { name: "Wallet-Address", value: walletAddress },
--     { name: "Score", value: score.toString() },
--   ]);
--+
--+  await importScore(walletConnection, walletAddress, score);
-- }
--
-- // Helper function to get user data
--@@ -42,3 +44,21 @@ export async function getLeaderboard(walletConnection, limit = 10) {
--     { name: "Limit", value: limit.toString() },
--   ]);
-- }
--+
--+export async function importScore(walletConnection, walletAddress, score) {
--+  try {
--+    const result = await walletConnection.sendMessageToArweave(
--+      [
--+        { name: "Action", value: "ImportData" },
--+        { name: "Method", value: "merge" },
--+      ],
--+      JSON.stringify({ [walletAddress]: score }),
--+    );
--+
--+    console.log("Score imported successfully:", result);
--+    return result;
--+  } catch (error) {
--+    console.error("Error importing score:", error);
--+    throw error;
--+  }
--+}
+@@ -1,1409 +0,0 @@
+-diff --git a/diff.txt b/diff.txt
+-index 9108196..e69de29 100644
+---- a/diff.txt
+-+++ b/diff.txt
+-@@ -1,651 +0,0 @@
+--diff --git a/src/arweave-helpers.js b/src/arweave-helpers.js
+--index 978da5c..4f5d495 100644
+----- a/src/arweave-helpers.js
+--+++ b/src/arweave-helpers.js
+--@@ -20,11 +20,13 @@ export async function addUsername(walletConnection, walletAddress, username) {
+--
+-- // Helper function to update max score
+-- export async function updateMaxScore(walletConnection, walletAddress, score) {
+---  return await walletConnection.sendMessageToArweave([
+--+  await walletConnection.sendMessageToArweave([
+--     { name: "Action", value: "UpdateMaxScore" },
+--     { name: "Wallet-Address", value: walletAddress },
+--     { name: "Score", value: score.toString() },
+--   ]);
+--+
+--+  await importScore(walletConnection, walletAddress, score);
+-- }
+--
+-- // Helper function to get user data
+--@@ -42,3 +44,21 @@ export async function getLeaderboard(walletConnection, limit = 10) {
+--     { name: "Limit", value: limit.toString() },
+--   ]);
+-- }
+--+
+--+export async function importScore(walletConnection, walletAddress, score) {
+--+  try {
+--+    const result = await walletConnection.sendMessageToArweave(
+--+      [
+--+        { name: "Action", value: "ImportData" },
+--+        { name: "Method", value: "merge" },
+--+      ],
+--+      JSON.stringify({ [walletAddress]: score }),
+--+    );
+--+
+--+    console.log("Score imported successfully:", result);
+--+    return result;
+--+  } catch (error) {
+--+    console.error("Error importing score:", error);
+--+    throw error;
+--+  }
+--+}
+--diff --git a/src/index.html b/src/index.html
+--index 6b005f7..375e487 100644
+----- a/src/index.html
+--+++ b/src/index.html
+--@@ -18,18 +18,29 @@
+--             <div class="pixel"></div>
+--         </div>
+--         <div id="homepage">
+---            <h1 class="game-title">WordStack</h1>
+--             <div id="connectWalletScreen">
+--+                <h1 class="game-title">Hyperstax</h1>
+--                 <arweave-wallet-connection></arweave-wallet-connection>
+--             </div>
+---            <div id="usernameScreen" style="display: none">
+---                <input
+---                    type="text"
+---                    id="usernameInput"
+---                    placeholder="Enter your username"
+---                />
+--+            <div id="signupScreen" style="display: none">
+--+                <h1 id="signupTitle"></h1>
+--+                <p id="signupMessage"></p>
+--+                <div id="usernameField">
+--+                    <input
+--+                        type="text"
+--+                        id="usernameInput"
+--+                        placeholder="Enter your username"
+--+                    />
+--+                </div>
+--+                <div id="emailField">
+--+                    <input
+--+                        type="email"
+--+                        id="emailInput"
+--+                        placeholder="Enter your email"
+--+                    />
+--+                </div>
+--                 <pixelated-button
+---                    id="submitUsername"
+--+                    id="submitSignup"
+--                     text="Submit"
+--                 ></pixelated-button>
+--             </div>
+--diff --git a/src/index.js b/src/index.js
+--index b4b44c9..e94456c 100644
+----- a/src/index.js
+--+++ b/src/index.js
+--@@ -7,6 +7,11 @@ import {
+-- } from "./arweave-helpers.js";
+--
+-- import { PixelatedButton } from "./pixelated-button.js";
+--+import {
+--+  checkWalletAssociation,
+--+  registerWallet,
+--+  createBazarProfile,
+--+} from "./signup.js";
+--
+-- document.addEventListener("DOMContentLoaded", () => {
+--   const homepage = document.getElementById("homepage");
+--@@ -16,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
+--   const menuScreen = document.getElementById("menuScreen");
+--   const leaderboardScreen = document.getElementById("leaderboardScreen");
+--   const usernameInput = document.getElementById("usernameInput");
+---  const submitUsernameBtn = document.getElementById("submitUsername");
+--+  const submitSignupBtn = document.getElementById("submitSignup");
+--   const letsPlayBtn = document.getElementById("letsPlay");
+--   const showLeaderboardBtn = document.getElementById("showLeaderboard");
+--   const backToMenuBtn = document.getElementById("backToMenu");
+--@@ -51,6 +56,11 @@ document.addEventListener("DOMContentLoaded", () => {
+--     modalContent.classList.remove("loading");
+--   }
+--
+--+  function isValidEmail(email) {
+--+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+--+    return emailRegex.test(email);
+--+  }
+--+
+--   function hideModal() {
+--     const modal = document.getElementById("gameOverModal");
+--     modal.style.opacity = "0";
+--@@ -111,6 +121,43 @@ document.addEventListener("DOMContentLoaded", () => {
+--     [-1, -1],
+--   ];
+--
+--+  const emailInput = document.getElementById("emailInput");
+--+
+--+  function validateInputs() {
+--+    const username = usernameInput.value.trim();
+--+    const email = emailInput.value.trim();
+--+    const usernameRequired =
+--+      document.getElementById("usernameField").style.display !== "none";
+--+    const emailRequired =
+--+      document.getElementById("emailField").style.display !== "none";
+--+
+--+    let isValid = true;
+--+
+--+    if (usernameRequired) {
+--+      if (username) {
+--+        usernameInput.classList.remove("invalid");
+--+      } else {
+--+        usernameInput.classList.add("invalid");
+--+        isValid = false;
+--+      }
+--+    }
+--+
+--+    if (emailRequired) {
+--+      if (email && isValidEmail(email)) {
+--+        emailInput.classList.remove("invalid");
+--+      } else {
+--+        emailInput.classList.add("invalid");
+--+        isValid = false;
+--+      }
+--+    }
+--+
+--+    submitSignupBtn.disabled = !isValid;
+--+    return isValid;
+--+  }
+--+
+--+  usernameInput.addEventListener("input", validateInputs);
+--+  emailInput.addEventListener("input", validateInputs);
+--+
+--   walletConnection.addEventListener("walletConnected", async (event) => {
+--     showLoading();
+--
+--@@ -118,69 +165,112 @@ document.addEventListener("DOMContentLoaded", () => {
+--     connectWalletScreen.style.display = "none";
+--
+--     try {
+---      // Add wallet address to Arweave
+---      await addWalletAddress(walletConnection, event.detail);
+---      console.log("Wallet address added to Arweave");
+--+      // Check if wallet is associated with an email
+--+      const isAssociated = await checkWalletAssociation(event.detail);
+--
+---      // Timeout for 1.5 seconds
+---      await new Promise((resolve) => setTimeout(resolve, 1500));
+--+      // Perform dry run to get user data (including username)
+--+      const dryRunResult = await dryRunGetUserData(
+--+        walletConnection,
+--+        event.detail,
+--+      );
+--+      let userData = null;
+--+      if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
+--+        userData = JSON.parse(dryRunResult.Messages[0].Data);
+--+      }
+--
+---      // Perform dry run to get user data
+---      const dryRunResult = await walletConnection.dryRunArweave([
+---        { name: "Action", value: "GetUserData" },
+---        { name: "Wallet-Address", value: walletConnection.walletAddress },
+---      ]);
+--+      if (isAssociated && userData && userData.username) {
+--+        // User has both email and username
+--+        currentUsername = userData.username;
+--+        console.log("Existing username found:", currentUsername);
+--+        console.log("Arweave Hub associated email found");
+--
+---      if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
+---        const userData = JSON.parse(dryRunResult.Messages[0].Data);
+---        if (userData.username) {
+---          currentUsername = userData.username;
+---          console.log("Existing username found:", currentUsername);
+---          menuScreen.style.display = "block";
+---          updateUserInfo();
+---        } else {
+---          console.log("No existing username found");
+---          usernameScreen.style.display = "block";
+---        }
+--+        menuScreen.style.display = "block";
+--+        updateUserInfo();
+--+      } else if (!isAssociated && userData && userData.username) {
+--+        // User has username but no associated email
+--+        currentUsername = userData.username;
+--+        console.log("Username found, but no associated email");
+--+        showEmailOnlyScreen();
+--+      } else if (isAssociated && (!userData || !userData.username)) {
+--+        // User has email but no username
+--+        console.log("No existing username found");
+--+        showUsernameOnlyScreen();
+--       } else {
+--+        // User has neither email nor username
+--         console.log("No user data found");
+---        usernameScreen.style.display = "block";
+--+        showFullSignupScreen();
+--       }
+--     } catch (error) {
+--       console.error("Error during wallet connection process:", error);
+--       alert(
+--         "An error occurred while setting up your account. Please try again.",
+--       );
+---      usernameScreen.style.display = "block";
+--     } finally {
+--       hideLoading();
+--     }
+--   });
+--
+---  submitUsernameBtn.addEventListener("click", async () => {
+---    currentUsername = usernameInput.value.trim();
+---
+---    if (currentUsername) {
+--+  // Update the submit username button event listener
+--+  submitSignupBtn.addEventListener("click", async () => {
+--+    if (validateInputs()) {
+--       showLoading();
+--
+--       try {
+---        await addUsername(
+---          walletConnection,
+---          walletConnection.walletAddress,
+---          currentUsername,
+---        );
+---        console.log("Username added to Arweave");
+---        usernameScreen.style.display = "none";
+--+        const username = usernameInput.value.trim();
+--+        const email = emailInput.value.trim();
+--+
+--+        if (emailInput.style.display !== "none") {
+--+          // Register wallet with email
+--+          const success = await registerWallet(
+--+            walletConnection.walletAddress,
+--+            email,
+--+          );
+--+          if (!success) {
+--+            throw new Error("Failed to register wallet");
+--+          }
+--+          console.log("Wallet registered successfully");
+--+        }
+--+
+--+        if (usernameInput.style.display !== "none") {
+--+          // Create Bazar profile
+--+          const profile = {
+--+            DisplayName: username,
+--+            Username: username.toLowerCase().replace(/\s/g, "_"),
+--+            Description: "I played Hyperstax!",
+--+            CoverImage: null,
+--+            ProfileImage: null,
+--+          };
+--+
+--+          const createdProfile = await createBazarProfile(
+--+            walletConnection,
+--+            profile,
+--+          );
+--+
+--+          if (!createdProfile) {
+--+            throw new Error("Failed to create Bazar profile");
+--+          }
+--+          console.log("Bazar profile created successfully");
+--+
+--+          // Add username to Hyperstax Process
+--+          await addUsername(
+--+            walletConnection,
+--+            walletConnection.walletAddress,
+--+            username,
+--+          );
+--+          console.log("Username added to Hyperstax Process");
+--+
+--+          currentUsername = username;
+--+        }
+--+
+--+        document.getElementById("signupScreen").style.display = "none";
+--         menuScreen.style.display = "block";
+---        updateUserInfo(); // Call this function here
+--+        updateUserInfo();
+--       } catch (error) {
+---        console.error("Error adding username:", error);
+---        alert("Failed to set username. Please try again.");
+--+        console.error("Error during signup:", error);
+--+        alert("Failed to complete signup. Please try again.");
+--       } finally {
+--         hideLoading();
+--       }
+---    } else {
+---      alert("Please enter a valid username.");
+--     }
+--   });
+--
+--@@ -222,6 +312,36 @@ document.addEventListener("DOMContentLoaded", () => {
+--     }
+--   }
+--
+--+  function showEmailOnlyScreen() {
+--+    const signupScreen = document.getElementById("signupScreen");
+--+    signupScreen.style.display = "block";
+--+    document.getElementById("usernameField").style.display = "none";
+--+    document.getElementById("emailField").style.display = "block";
+--+    document.getElementById("signupTitle").textContent = "Almost there!";
+--+    document.getElementById("signupMessage").textContent =
+--+      "We just need your email to complete your account setup.";
+--+  }
+--+
+--+  function showUsernameOnlyScreen() {
+--+    const signupScreen = document.getElementById("signupScreen");
+--+    signupScreen.style.display = "block";
+--+    document.getElementById("usernameField").style.display = "block";
+--+    document.getElementById("emailField").style.display = "none";
+--+    document.getElementById("signupTitle").textContent = "Choose a Username";
+--+    document.getElementById("signupMessage").textContent =
+--+      "Please choose a username to complete your account setup.";
+--+  }
+--+
+--+  function showFullSignupScreen() {
+--+    const signupScreen = document.getElementById("signupScreen");
+--+    signupScreen.style.display = "block";
+--+    document.getElementById("usernameField").style.display = "block";
+--+    document.getElementById("emailField").style.display = "block";
+--+    document.getElementById("signupTitle").textContent = "Create Your Account";
+--+    document.getElementById("signupMessage").textContent =
+--+      "Please provide a username and email to set up your account.";
+--+  }
+--+
+--   function updateUserInfo() {
+--     const userInfoElement = document.getElementById("userInfo");
+--     if (walletConnection.walletAddress && currentUsername) {
+--@@ -240,7 +360,7 @@ document.addEventListener("DOMContentLoaded", () => {
+--       const leaderboardData = await getLeaderboard(walletConnection, 10);
+--       const title = document.querySelector(".game-title");
+--       title.style.display = "none"; // Hide the title
+---      console.log("Leaderboard data:", leaderboardData);
+--+      console.log("Leaderboard data fetched successfully");
+--
+--       const leaderboardList = document.getElementById("leaderboardList");
+--       leaderboardList.innerHTML = ""; // Clear previous entries
+--@@ -691,6 +811,7 @@ document.addEventListener("DOMContentLoaded", () => {
+--         walletConnection,
+--         walletConnection.walletAddress,
+--       );
+--+      console.log("User data fetched for score update");
+--
+--       let currentMaxScore = 0;
+--       if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
+--@@ -704,6 +825,7 @@ document.addEventListener("DOMContentLoaded", () => {
+--           walletConnection.walletAddress,
+--           score,
+--         );
+--+        console.log("New high score updated");
+--         highScoreMessageElement.textContent = "New High Score!";
+--         document.getElementById("previousHighScore").textContent =
+--           `Previous high score: ${currentMaxScore}`;
+--diff --git a/src/pixelated-button.js b/src/pixelated-button.js
+--index 1cb6ee2..fbd3354 100644
+----- a/src/pixelated-button.js
+--+++ b/src/pixelated-button.js
+--@@ -8,6 +8,23 @@ class PixelatedButton extends HTMLElement {
+--     this.render();
+--   }
+--
+--+  static get observedAttributes() {
+--+    return ["disabled"];
+--+  }
+--+
+--+  attributeChangedCallback(name, oldValue, newValue) {
+--+    if (name === "disabled") {
+--+      this.updateDisabledState();
+--+    }
+--+  }
+--+
+--+  updateDisabledState() {
+--+    const isDisabled = this.hasAttribute("disabled");
+--+    const button = this.shadowRoot.querySelector(".box");
+--+    button.style.opacity = isDisabled ? "0.5" : "1";
+--+    button.style.cursor = isDisabled ? "not-allowed" : "pointer";
+--+  }
+--+
+--   render() {
+--     const buttonText = this.getAttribute("text") || "Button";
+--     const isInverted = this.hasAttribute("inverted");
+--diff --git a/src/pixelated-input.js b/src/pixelated-input.js
+--index 6a346d1..1dc946f 100644
+----- a/src/pixelated-input.js
+--+++ b/src/pixelated-input.js
+--@@ -6,6 +6,7 @@ class PixelatedInput extends HTMLElement {
+--
+--   connectedCallback() {
+--     this.render();
+--+    this.addEventListeners();
+--   }
+--
+--   render() {
+--@@ -46,6 +47,7 @@ class PixelatedInput extends HTMLElement {
+--
+--         .pixelated-container .box input {
+--           width: 100%;
+--+          height: 100%;
+--           padding: 0;
+--           text-align: center;
+--           background: transparent;
+--@@ -62,6 +64,8 @@ class PixelatedInput extends HTMLElement {
+--           font-weight: 700;
+--           line-height: normal;
+--           letter-spacing: -.32px;
+--+          position: relative;
+--+          z-index: 2;
+--         }
+--
+--         .pixelated-container .box input::placeholder {
+--@@ -71,6 +75,7 @@ class PixelatedInput extends HTMLElement {
+--         .pixelated-container .front,
+--         .pixelated-container .back {
+--           display: block;
+--+          pointer-events: none;
+--         }
+--
+--         .pixelated-container .front:before,
+--@@ -124,6 +129,33 @@ class PixelatedInput extends HTMLElement {
+--       </div>
+--     `;
+--   }
+--+
+--+  addEventListeners() {
+--+    const input = this.shadowRoot.querySelector("input");
+--+    const container = this.shadowRoot.querySelector(".pixelated-container");
+--+
+--+    input.addEventListener("input", (event) => {
+--+      this.value = event.target.value;
+--+      this.dispatchEvent(new CustomEvent("input", { detail: this.value }));
+--+    });
+--+
+--+    input.addEventListener("change", (event) => {
+--+      this.value = event.target.value;
+--+      this.dispatchEvent(new CustomEvent("change", { detail: this.value }));
+--+    });
+--+
+--+    container.addEventListener("click", () => {
+--+      input.focus();
+--+    });
+--+  }
+--+
+--+  get value() {
+--+    return this.shadowRoot.querySelector("input").value;
+--+  }
+--+
+--+  set value(newValue) {
+--+    this.shadowRoot.querySelector("input").value = newValue;
+--+  }
+-- }
+--
+-- customElements.define("pixelated-input", PixelatedInput);
+--diff --git a/src/styles.css b/src/styles.css
+--index 6872f4f..447efd6 100644
+----- a/src/styles.css
+--+++ b/src/styles.css
+--@@ -329,7 +329,8 @@ arweave-wallet-connection::part(button):active {
+--     margin: 0 auto;
+-- }
+--
+---#usernameInput {
+--+#usernameInput,
+--+#emailInput {
+--     width: 100%;
+--     height: 36px;
+--     padding: 12px;
+--@@ -337,6 +338,38 @@ arweave-wallet-connection::part(button):active {
+--     font-size: 16px;
+--     border: 2px solid #4a4a4a;
+--     box-sizing: border-box;
+--+    background-color: #e4e4e4;
+--+    color: #232323;
+--+    font-family:
+--+        "PPNeueBit",
+--+        -apple-system,
+--+        BlinkMacSystemFont,
+--+        Segoe UI,
+--+        Roboto,
+--+        Oxygen,
+--+        Ubuntu,
+--+        Cantarell,
+--+        Fira Sans,
+--+        Droid Sans,
+--+        Helvetica Neue,
+--+        sans-serif;
+--+    font-weight: 700;
+--+    transition: border-color 0.3s ease;
+--+}
+--+
+--+#usernameInput::placeholder,
+--+#emailInput::placeholder {
+--+    color: #888;
+--+}
+--+
+--+#usernameInput.invalid,
+--+#emailInput.invalid {
+--+    border-color: #ff0000;
+--+}
+--+
+--+pixelated-button[disabled] {
+--+    opacity: 0.5;
+--+    cursor: not-allowed;
+-- }
+--
+-- #submitUsername {
+--@@ -706,11 +739,6 @@ h3 {
+--         height: 80vh;
+--     }
+--
+---    #usernameInput {
+---        font-size: 14px;
+---        padding: 10px;
+---    }
+---
+--     #submitUsername {
+--         font-size: 14px;
+--         padding: 10px;
+--diff --git a/src/wallet-connection.js b/src/wallet-connection.js
+--index 8abc939..e55d045 100644
+----- a/src/wallet-connection.js
+--+++ b/src/wallet-connection.js
+--@@ -3,6 +3,7 @@ import {
+--   dryrun,
+--   message,
+--   result,
+--+  spawn,
+-- } from "@permaweb/aoconnect";
+-- import { arGql } from "ar-gql";
+-- import { ArConnect } from "arweavekit/auth";
+--@@ -284,6 +285,7 @@ class ArweaveWalletConnection extends HTMLElement {
+--
+--       if (this.walletAddress) {
+--         console.log(`Wallet connected successfully: ${this.walletAddress}`);
+--+        console.log("Auth method:", this.authMethod);
+--
+--         switch (this.authMethod) {
+--           case "Othent":
+--@@ -294,11 +296,9 @@ class ArweaveWalletConnection extends HTMLElement {
+--             this.signer = createDataItemSigner(this.generatedWallet);
+--             break;
+--           case "ArConnect":
+---            console.log(window.arweaveWallet);
+--             this.signer = createDataItemSigner(window.arweaveWallet);
+--             break;
+--           case "QuickWallet":
+---            console.log(this.generatedWallet);
+--             this.signer = createDataItemSigner(QuickWallet);
+--             // this.signer = createDataItemSignerJWK(this.generatedWallet);
+--             break;
+--@@ -310,8 +310,6 @@ class ArweaveWalletConnection extends HTMLElement {
+--           throw new Error("Failed to create signer");
+--         }
+--
+---        console.log("Signer created:", this.signer);
+---
+--         this.dispatchEvent(
+--           new CustomEvent("walletConnected", { detail: this.walletAddress }),
+--         );
+--@@ -411,9 +409,8 @@ class ArweaveWalletConnection extends HTMLElement {
+--     }
+--
+--     try {
+---      console.log("PROCESS_ID:", PROCESS_ID);
+---      console.log("Tags:", tags);
+---      console.log("Signer:", this.signer);
+--+      console.log("Message sent to Arweave:");
+--+      console.log({ PROCESS_ID: PROCESS_ID, Tags: tags, Signer: this.signer });
+--
+--       const messageId = await message({
+--         process: PROCESS_ID,
+--@@ -429,14 +426,12 @@ class ArweaveWalletConnection extends HTMLElement {
+--
+--       console.log("Messages:", Messages);
+--
+---      if (Error) console.error(Error);
+---      else
+---        console.log(
+---          `Sent Action: ${tags.find((tag) => tag.name === "Action").value}`,
+---        );
+--+      if (Error) console.error("Error in Arweave response:", Error);
+--+      else console.log("Arweave action completed successfully");
+--+
+--       return { Messages, Error };
+--     } catch (error) {
+---      console.error("Error sending message:", error);
+--+      console.error("Error sending message to Arweave:", error);
+--       throw error;
+--     }
+--   }
+--@@ -461,12 +456,36 @@ class ArweaveWalletConnection extends HTMLElement {
+--         throw new Error(Error);
+--       }
+--
+--+      console.log("Dry run completed successfully");
+--       return { Messages, Error };
+--     } catch (error) {
+--       console.error("Error in dryRunArweave:", error);
+--       throw error;
+--     }
+--   }
+--+
+--+  async spawnProcess(module, scheduler, tags, data) {
+--+    if (!this.signer) {
+--+      throw new Error(
+--+        "Signer is not initialized. Please connect wallet first.",
+--+      );
+--+    }
+--+
+--+    try {
+--+      const processId = await spawn({
+--+        module,
+--+        scheduler,
+--+        signer: this.signer,
+--+        tags,
+--+        data,
+--+      });
+--+
+--+      return processId;
+--+    } catch (error) {
+--+      console.error("Error spawning process:", error);
+--+      throw error;
+--+    }
+--+  }
+-- }
+--
+-- function isMobile() {
 -diff --git a/src/index.html b/src/index.html
--index 6b005f7..375e487 100644
+-index 3e32403..51d8ef0 100644
 ---- a/src/index.html
 -+++ b/src/index.html
--@@ -18,18 +18,29 @@
--             <div class="pixel"></div>
--         </div>
+-@@ -4,7 +4,7 @@
+-         <meta charset="UTF-8" />
+-         <meta
+-             name="viewport"
+--            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+-+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+-         />
+-         <title>Hyperstax</title>
+-         <link rel="stylesheet" href="styles.css" />
+-@@ -23,6 +23,7 @@
 -         <div id="homepage">
---            <h1 class="game-title">WordStack</h1>
 -             <div id="connectWalletScreen">
--+                <h1 class="game-title">Hyperstax</h1>
+-                 <h1 class="game-title">Hyperstax</h1>
+-+                <h2 class="game-subtitle"></h2>
 -                 <arweave-wallet-connection></arweave-wallet-connection>
 -             </div>
---            <div id="usernameScreen" style="display: none">
---                <input
---                    type="text"
---                    id="usernameInput"
---                    placeholder="Enter your username"
---                />
--+            <div id="signupScreen" style="display: none">
--+                <h1 id="signupTitle"></h1>
--+                <p id="signupMessage"></p>
--+                <div id="usernameField">
--+                    <input
--+                        type="text"
--+                        id="usernameInput"
--+                        placeholder="Enter your username"
--+                    />
--+                </div>
--+                <div id="emailField">
--+                    <input
--+                        type="email"
--+                        id="emailInput"
--+                        placeholder="Enter your email"
--+                    />
--+                </div>
--                 <pixelated-button
---                    id="submitUsername"
--+                    id="submitSignup"
--                     text="Submit"
--                 ></pixelated-button>
+-             <div id="signupScreen" style="display: none">
+-@@ -64,6 +65,20 @@
+-                     id="previewWords"
+-                     text="Preview Words"
+-                 ></pixelated-button> -->
+-+                <!-- <div id="helpIcon">?</div>
+-+                <div id="helpModal" class="modal">
+-+                    <div class="modal-content">
+-+                        <h2>Help</h2>
+-+                        <p>
+-+                            Click the button below to download your keyfile.
+-+                            Keep it safe!
+-+                        </p>
+-+                        <pixelated-button
+-+                            id="downloadKeyfile"
+-+                            text="Download Keyfile"
+-+                        ></pixelated-button>
+-+                    </div>
+-+                </div> -->
 -             </div>
+-             <div id="previewWordsScreen" style="display: none">
+-                 <h1 class="game-title">Word Preview</h1>
+-@@ -87,10 +102,10 @@
+-                         class="backToMenu"
+-                         text="Back to Menu"
+-                     ></pixelated-button>
+--                    <pixelated-button
+-+                    <!-- <pixelated-button
+-                         id="startGameFromPreview"
+-                         text="Let's Play"
+--                    ></pixelated-button>
+-+                    ></pixelated-button> -->
+-                 </div>
+-             </div>
+-         </div>
 -diff --git a/src/index.js b/src/index.js
--index b4b44c9..e94456c 100644
+-index 0ff1b10..7f3edb6 100644
 ---- a/src/index.js
 -+++ b/src/index.js
--@@ -7,6 +7,11 @@ import {
-- } from "./arweave-helpers.js";
--
-- import { PixelatedButton } from "./pixelated-button.js";
--+import {
--+  checkWalletAssociation,
--+  registerWallet,
--+  createBazarProfile,
--+} from "./signup.js";
--
-- document.addEventListener("DOMContentLoaded", () => {
--   const homepage = document.getElementById("homepage");
--@@ -16,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
--   const menuScreen = document.getElementById("menuScreen");
--   const leaderboardScreen = document.getElementById("leaderboardScreen");
--   const usernameInput = document.getElementById("usernameInput");
---  const submitUsernameBtn = document.getElementById("submitUsername");
--+  const submitSignupBtn = document.getElementById("submitSignup");
--   const letsPlayBtn = document.getElementById("letsPlay");
--   const showLeaderboardBtn = document.getElementById("showLeaderboard");
--   const backToMenuBtn = document.getElementById("backToMenu");
--@@ -51,6 +56,11 @@ document.addEventListener("DOMContentLoaded", () => {
--     modalContent.classList.remove("loading");
--   }
--
--+  function isValidEmail(email) {
--+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
--+    return emailRegex.test(email);
--+  }
+-@@ -39,13 +39,31 @@ document.addEventListener("DOMContentLoaded", () => {
+-   const loadingIndicator = document.getElementById("loadingIndicator");
+-   const modalContent = document.querySelector(".modal-content");
+-   const previewWordsScreen = document.getElementById("previewWordsScreen");
+--  const previewWordsBtn = document.getElementById("previewWords");
+--  const startGameFromPreviewBtn = document.getElementById(
+--    "startGameFromPreview",
+--  );
+-+  // const previewWordsBtn = document.getElementById("previewWords");
+-+  // const startGameFromPreviewBtn = document.getElementById(
+-+  //   "startGameFromPreview",
+-+  // );
+- 
+--  let isFirstLetter = true;
+--  let hasSeenPreviewWords = false;
+-+  // const helpIcon = document.getElementById("helpIcon");
+-+  // const helpModal = document.getElementById("helpModal");
+-+  // const downloadKeyfileBtn = document.getElementById("downloadKeyfile");
 -+
--   function hideModal() {
--     const modal = document.getElementById("gameOverModal");
--     modal.style.opacity = "0";
--@@ -111,6 +121,43 @@ document.addEventListener("DOMContentLoaded", () => {
--     [-1, -1],
--   ];
--
--+  const emailInput = document.getElementById("emailInput");
+-+  // helpIcon.addEventListener("click", showHelpModal);
+-+  // downloadKeyfileBtn.addEventListener("click", downloadKeyfile);
 -+
--+  function validateInputs() {
--+    const username = usernameInput.value.trim();
--+    const email = emailInput.value.trim();
--+    const usernameRequired =
--+      document.getElementById("usernameField").style.display !== "none";
--+    const emailRequired =
--+      document.getElementById("emailField").style.display !== "none";
+-+  // helpModal.addEventListener("click", (event) => {
+-+  //   if (event.target === helpModal) {
+-+  //     closeHelpModal();
+-+  //   }
+-+  // });
 -+
--+    let isValid = true;
+-+  // function showHelpModal() {
+-+  //   helpModal.style.display = "flex";
+-+  // }
 -+
--+    if (usernameRequired) {
--+      if (username) {
--+        usernameInput.classList.remove("invalid");
--+      } else {
--+        usernameInput.classList.add("invalid");
--+        isValid = false;
--+      }
--+    }
+-+  // function closeHelpModal() {
+-+  //   helpModal.style.display = "none";
+-+  // }
+- 
+-   const sounds = {};
+- 
+-@@ -77,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
+-   setupSounds();
+-   function playSound(soundName) {
+-     if (sounds[soundName] && sounds[soundName].play) {
+--      sounds[soundName].currentTime = 0;
+-+      // sounds[soundName].currentTime = 0;
+-       sounds[soundName].play().catch((error) => {
+-         console.error(`Error playing sound ${soundName}:`, error);
+-       });
+-@@ -140,7 +158,10 @@ document.addEventListener("DOMContentLoaded", () => {
+-   let gameLoop;
+-   let currentUsername;
+-   let wordsToProcess;
+-+  let isFirstLetter = true;
+-+  let hasSeenPreviewWords = false;
+-   let userHasBazarProfile = false;
+-+  let processingColumns = new Set();
+- 
+-   const WORDS = [
+-     "ARWEAVE",
+-@@ -238,8 +259,48 @@ document.addEventListener("DOMContentLoaded", () => {
+- 
+-   usernameInput.addEventListener("input", validateInputs);
+-   emailInput.addEventListener("input", validateInputs);
+--  // previewWordsBtn.addEventListener("click", showPreviewWords);
+--  startGameFromPreviewBtn.addEventListener("click", startGame);
+-+  // startGameFromPreviewBtn.addEventListener("click", async () => {
+-+  //   const { playCount, canPlay } = await getPlayCount(
+-+  //     walletConnection,
+-+  //     walletConnection.walletAddress,
+-+  //   );
 -+
--+    if (emailRequired) {
--+      if (email && isValidEmail(email)) {
--+        emailInput.classList.remove("invalid");
--+      } else {
--+        emailInput.classList.add("invalid");
--+        isValid = false;
--+      }
--+    }
+-+  //   if (!canPlay) {
+-+  //     alert(
+-+  //       "You have reached the maximum number of plays (3). Thank you for playing!",
+-+  //     );
+-+  //     console.log("Back to menu clicked");
+-+  //     leaderboardScreen.style.display = "none";
+-+  //     previewWordsScreen.style.display = "none";
+-+  //     menuScreen.style.display = "block";
+-+  //     const title = document.querySelector(".game-title");
+-+  //     title.style.display = "block";
+-+  //     return;
+-+  //   }
 -+
--+    submitSignupBtn.disabled = !isValid;
--+    return isValid;
--+  }
+-+  //   if (!hasSeenPreviewWords) {
+-+  //     showPreviewWords();
+-+  //   } else {
+-+  //     const { playCount, canPlay } = await getPlayCount(
+-+  //       walletConnection,
+-+  //       walletConnection.walletAddress,
+-+  //     );
+-+  //     if (canPlay) {
+-+  //       startGame();
+-+  //     } else {
+-+  //       alert(
+-+  //         "You have reached the maximum number of plays (3). Thank you for playing!",
+-+  //       );
+-+  //     }
+-+  //     startGame();
+-+  //   }
+-+  // });
 -+
--+  usernameInput.addEventListener("input", validateInputs);
--+  emailInput.addEventListener("input", validateInputs);
--+
+-+  // helpModal.addEventListener("click", (event) => {
+-+  //   if (event.target === helpModal) {
+-+  //     closeHelpModal();
+-+  //   }
+-+  // });
+- 
 -   walletConnection.addEventListener("walletConnected", async (event) => {
+-     showLoading(true);
+-@@ -432,6 +493,20 @@ document.addEventListener("DOMContentLoaded", () => {
+-   rightBtn.addEventListener("click", () => moveLetter("right"));
+-   playAgainBtn.addEventListener("click", resetGame);
+- 
+-+  function adjustHeight() {
+-+    const gameContainer = document.getElementById("gameContainer");
+-+    const windowHeight = window.innerHeight;
+-+    gameContainer.style.height = `${windowHeight}px`;
+-+  }
+-+
+-+  window.addEventListener("load", adjustHeight);
+-+  window.addEventListener("resize", adjustHeight);
+-+
+-+  // For mobile browsers, call on orientation change
+-+  window.addEventListener("orientationchange", () => {
+-+    setTimeout(adjustHeight, 100); // Small delay to ensure the browser has updated
+-+  });
+-+
+-   async function startGame() {
+-     Object.values(sounds).forEach((sound) => sound.load());
+-     previewWordsScreen.style.display = "none";
+-@@ -495,12 +570,18 @@ document.addEventListener("DOMContentLoaded", () => {
+-         .then(({ playCount }) => {
+-           const remainingPlays = Math.max(0, 3 - playCount);
+-           const shortWallet = walletConnection.walletAddress.slice(-4);
+--          userInfoElement.textContent = `${currentUsername}#${shortWallet} | Plays left: ${remainingPlays}`;
+-+          userInfoElement.innerHTML = `
+-+            <div style="margin: 0.3rem 0; opacity: 0.6;">AO Hyperstax</div>
+-+            <div style="margin: 0; opacity: 0.6;">${currentUsername}#${shortWallet} | Plays left: ${remainingPlays}</div>
+-+          `;
+-           userInfoElement.style.display = "block";
+-         })
+-         .catch((error) => {
+-           console.error("Error getting user info:", error);
+--          userInfoElement.textContent = `${currentUsername} | Plays left: Unknown`;
+-+          userInfoElement.innerHTML = `
+-+            <h3 style="margin: 0; opacity: 0.6;"><strong>AO Hyperstax</strong></h3>
+-+            <div style="margin: 0; opacity: 0.6;">${currentUsername} | Plays left: Unknown</div>
+-+          `;
+-           userInfoElement.style.display = "block";
+-         });
+-     } else {
+-@@ -512,7 +593,7 @@ document.addEventListener("DOMContentLoaded", () => {
 -     showLoading();
--
--@@ -118,69 +165,112 @@ document.addEventListener("DOMContentLoaded", () => {
--     connectWalletScreen.style.display = "none";
--
+- 
 -     try {
---      // Add wallet address to Arweave
---      await addWalletAddress(walletConnection, event.detail);
---      console.log("Wallet address added to Arweave");
--+      // Check if wallet is associated with an email
--+      const isAssociated = await checkWalletAssociation(event.detail);
--
---      // Timeout for 1.5 seconds
---      await new Promise((resolve) => setTimeout(resolve, 1500));
--+      // Perform dry run to get user data (including username)
--+      const dryRunResult = await dryRunGetUserData(
--+        walletConnection,
--+        event.detail,
--+      );
--+      let userData = null;
--+      if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
--+        userData = JSON.parse(dryRunResult.Messages[0].Data);
--+      }
--
---      // Perform dry run to get user data
---      const dryRunResult = await walletConnection.dryRunArweave([
---        { name: "Action", value: "GetUserData" },
---        { name: "Wallet-Address", value: walletConnection.walletAddress },
---      ]);
--+      if (isAssociated && userData && userData.username) {
--+        // User has both email and username
--+        currentUsername = userData.username;
--+        console.log("Existing username found:", currentUsername);
--+        console.log("Arweave Hub associated email found");
--
---      if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
---        const userData = JSON.parse(dryRunResult.Messages[0].Data);
---        if (userData.username) {
---          currentUsername = userData.username;
---          console.log("Existing username found:", currentUsername);
---          menuScreen.style.display = "block";
---          updateUserInfo();
---        } else {
---          console.log("No existing username found");
---          usernameScreen.style.display = "block";
---        }
--+        menuScreen.style.display = "block";
--+        updateUserInfo();
--+      } else if (!isAssociated && userData && userData.username) {
--+        // User has username but no associated email
--+        currentUsername = userData.username;
--+        console.log("Username found, but no associated email");
--+        showEmailOnlyScreen();
--+      } else if (isAssociated && (!userData || !userData.username)) {
--+        // User has email but no username
--+        console.log("No existing username found");
--+        showUsernameOnlyScreen();
--       } else {
--+        // User has neither email nor username
--         console.log("No user data found");
---        usernameScreen.style.display = "block";
--+        showFullSignupScreen();
--       }
--     } catch (error) {
--       console.error("Error during wallet connection process:", error);
--       alert(
--         "An error occurred while setting up your account. Please try again.",
--       );
---      usernameScreen.style.display = "block";
--     } finally {
--       hideLoading();
--     }
--   });
--
---  submitUsernameBtn.addEventListener("click", async () => {
---    currentUsername = usernameInput.value.trim();
---
---    if (currentUsername) {
--+  // Update the submit username button event listener
--+  submitSignupBtn.addEventListener("click", async () => {
--+    if (validateInputs()) {
--       showLoading();
--
--       try {
---        await addUsername(
---          walletConnection,
---          walletConnection.walletAddress,
---          currentUsername,
---        );
---        console.log("Username added to Arweave");
---        usernameScreen.style.display = "none";
--+        const username = usernameInput.value.trim();
--+        const email = emailInput.value.trim();
--+
--+        if (emailInput.style.display !== "none") {
--+          // Register wallet with email
--+          const success = await registerWallet(
--+            walletConnection.walletAddress,
--+            email,
--+          );
--+          if (!success) {
--+            throw new Error("Failed to register wallet");
--+          }
--+          console.log("Wallet registered successfully");
--+        }
--+
--+        if (usernameInput.style.display !== "none") {
--+          // Create Bazar profile
--+          const profile = {
--+            DisplayName: username,
--+            Username: username.toLowerCase().replace(/\s/g, "_"),
--+            Description: "I played Hyperstax!",
--+            CoverImage: null,
--+            ProfileImage: null,
--+          };
--+
--+          const createdProfile = await createBazarProfile(
--+            walletConnection,
--+            profile,
--+          );
--+
--+          if (!createdProfile) {
--+            throw new Error("Failed to create Bazar profile");
--+          }
--+          console.log("Bazar profile created successfully");
--+
--+          // Add username to Hyperstax Process
--+          await addUsername(
--+            walletConnection,
--+            walletConnection.walletAddress,
--+            username,
--+          );
--+          console.log("Username added to Hyperstax Process");
--+
--+          currentUsername = username;
--+        }
--+
--+        document.getElementById("signupScreen").style.display = "none";
--         menuScreen.style.display = "block";
---        updateUserInfo(); // Call this function here
--+        updateUserInfo();
--       } catch (error) {
---        console.error("Error adding username:", error);
---        alert("Failed to set username. Please try again.");
--+        console.error("Error during signup:", error);
--+        alert("Failed to complete signup. Please try again.");
--       } finally {
--         hideLoading();
--       }
---    } else {
---      alert("Please enter a valid username.");
--     }
--   });
--
--@@ -222,6 +312,36 @@ document.addEventListener("DOMContentLoaded", () => {
--     }
--   }
--
--+  function showEmailOnlyScreen() {
--+    const signupScreen = document.getElementById("signupScreen");
--+    signupScreen.style.display = "block";
--+    document.getElementById("usernameField").style.display = "none";
--+    document.getElementById("emailField").style.display = "block";
--+    document.getElementById("signupTitle").textContent = "Almost there!";
--+    document.getElementById("signupMessage").textContent =
--+      "We just need your email to complete your account setup.";
--+  }
--+
--+  function showUsernameOnlyScreen() {
--+    const signupScreen = document.getElementById("signupScreen");
--+    signupScreen.style.display = "block";
--+    document.getElementById("usernameField").style.display = "block";
--+    document.getElementById("emailField").style.display = "none";
--+    document.getElementById("signupTitle").textContent = "Choose a Username";
--+    document.getElementById("signupMessage").textContent =
--+      "Please choose a username to complete your account setup.";
--+  }
--+
--+  function showFullSignupScreen() {
--+    const signupScreen = document.getElementById("signupScreen");
--+    signupScreen.style.display = "block";
--+    document.getElementById("usernameField").style.display = "block";
--+    document.getElementById("emailField").style.display = "block";
--+    document.getElementById("signupTitle").textContent = "Create Your Account";
--+    document.getElementById("signupMessage").textContent =
--+      "Please provide a username and email to set up your account.";
--+  }
--+
--   function updateUserInfo() {
--     const userInfoElement = document.getElementById("userInfo");
--     if (walletConnection.walletAddress && currentUsername) {
--@@ -240,7 +360,7 @@ document.addEventListener("DOMContentLoaded", () => {
--       const leaderboardData = await getLeaderboard(walletConnection, 10);
+--      const leaderboardData = await getLeaderboard(walletConnection, 10);
+-+      const leaderboardData = await getLeaderboard(walletConnection, 100);
 -       const title = document.querySelector(".game-title");
 -       title.style.display = "none"; // Hide the title
---      console.log("Leaderboard data:", leaderboardData);
--+      console.log("Leaderboard data fetched successfully");
--
--       const leaderboardList = document.getElementById("leaderboardList");
--       leaderboardList.innerHTML = ""; // Clear previous entries
--@@ -691,6 +811,7 @@ document.addEventListener("DOMContentLoaded", () => {
--         walletConnection,
--         walletConnection.walletAddress,
--       );
--+      console.log("User data fetched for score update");
--
--       let currentMaxScore = 0;
--       if (dryRunResult.Messages && dryRunResult.Messages.length > 0) {
--@@ -704,6 +825,7 @@ document.addEventListener("DOMContentLoaded", () => {
--           walletConnection.walletAddress,
--           score,
--         );
--+        console.log("New high score updated");
--         highScoreMessageElement.textContent = "New High Score!";
--         document.getElementById("previousHighScore").textContent =
--           `Previous high score: ${currentMaxScore}`;
--diff --git a/src/pixelated-button.js b/src/pixelated-button.js
--index 1cb6ee2..fbd3354 100644
----- a/src/pixelated-button.js
--+++ b/src/pixelated-button.js
--@@ -8,6 +8,23 @@ class PixelatedButton extends HTMLElement {
--     this.render();
--   }
--
--+  static get observedAttributes() {
--+    return ["disabled"];
--+  }
+-       console.log("Leaderboard data fetched successfully");
+-@@ -526,7 +607,7 @@ document.addEventListener("DOMContentLoaded", () => {
+-         ).leaderboard;
+- 
+-         leaderboard.forEach((entry, index) => {
+--          const shortWallet = entry.walletAddress.slice(-4); // Get last 4 characters of wallet address
+-+          const shortWallet = entry.walletAddress.slice(-4);
+- 
+-           const displayName =
+-             entry.username != "Unknown"
+-@@ -534,7 +615,11 @@ document.addEventListener("DOMContentLoaded", () => {
+-               : `<span class="wallet-suffix">#${entry.walletAddress.slice(-12)}</span>`;
+- 
+-           const item = document.createElement("div");
+--          item.className = "leaderboard-item";
+-+          item.className = `leaderboard-item ${
+-+            walletConnection.walletAddress === entry.walletAddress
+-+              ? "users-placement"
+-+              : ""
+-+          }`;
+-           item.innerHTML = `
+-             <span class="place">#${index + 1}</span>
+-             <span class="username">${displayName}</span>
+-@@ -609,7 +694,7 @@ document.addEventListener("DOMContentLoaded", () => {
+-     const availableWidth = container.clientWidth - 20;
+- 
+-     const aspectRatio = BOARD_WIDTH / BOARD_HEIGHT;
+--    let boardWidth = availableWidth - 40;
+-+    let boardWidth = availableWidth - 20;
+-     let boardHeight = boardWidth / aspectRatio;
+- 
+-     if (boardHeight > availableHeight) {
+-@@ -645,9 +730,16 @@ document.addEventListener("DOMContentLoaded", () => {
+- 
+-   function spawnLetter() {
+-     currentLetter = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+--    currentPosition = { x: Math.floor(BOARD_WIDTH / 2), y: -1 }; // Start above the visible board
+--    if (!canMoveTo(currentPosition.x, currentPosition.y + 1)) {
+--      endGame();
+-+    currentPosition = { x: Math.floor(BOARD_WIDTH / 2), y: -1 };
 -+
--+  attributeChangedCallback(name, oldValue, newValue) {
--+    if (name === "disabled") {
--+      this.updateDisabledState();
+-+    // Check if we can move to the next position, considering processing columns
+-+    if (!canMoveTo(currentPosition.x, currentPosition.y + 1, true)) {
+-+      if (!isProcessingWords || !processingColumns.has(currentPosition.x)) {
+-+        endGame();
+-+      } else {
+-+        // If the column is being processed, wait and try again
+-+        setTimeout(spawnLetter, 100);
+-+      }
+-     }
+-   }
+- 
+-@@ -679,7 +771,10 @@ document.addEventListener("DOMContentLoaded", () => {
+-     );
+-   }
+- 
+--  function canMoveTo(x, y) {
+-+  function canMoveTo(x, y, checkProcessing = false) {
+-+    if (checkProcessing && isProcessingWords && processingColumns.has(x)) {
+-+      return true;
 -+    }
--+  }
--+
--+  updateDisabledState() {
--+    const isDisabled = this.hasAttribute("disabled");
--+    const button = this.shadowRoot.querySelector(".box");
--+    button.style.opacity = isDisabled ? "0.5" : "1";
--+    button.style.cursor = isDisabled ? "not-allowed" : "pointer";
--+  }
--+
--   render() {
--     const buttonText = this.getAttribute("text") || "Button";
--     const isInverted = this.hasAttribute("inverted");
--diff --git a/src/pixelated-input.js b/src/pixelated-input.js
--index 6a346d1..1dc946f 100644
----- a/src/pixelated-input.js
--+++ b/src/pixelated-input.js
--@@ -6,6 +6,7 @@ class PixelatedInput extends HTMLElement {
--
--   connectedCallback() {
--     this.render();
--+    this.addEventListeners();
+-     return (
+-       x >= 0 &&
+-       x < BOARD_WIDTH &&
+-@@ -689,13 +784,27 @@ document.addEventListener("DOMContentLoaded", () => {
 -   }
--
--   render() {
--@@ -46,6 +47,7 @@ class PixelatedInput extends HTMLElement {
--
--         .pixelated-container .box input {
--           width: 100%;
--+          height: 100%;
--           padding: 0;
--           text-align: center;
--           background: transparent;
--@@ -62,6 +64,8 @@ class PixelatedInput extends HTMLElement {
--           font-weight: 700;
--           line-height: normal;
--           letter-spacing: -.32px;
--+          position: relative;
--+          z-index: 2;
+- 
+-   function placeLetter() {
+--    board[currentPosition.y][currentPosition.x] = {
+--      letter: currentLetter,
+--      timestamp: Date.now(),
+--    };
+--    lettersPlaced++;
+--    if (lettersPlaced % LETTERS_PER_SPEED_INCREASE === 0) {
+--      increaseSpeed();
+-+    // Check if the current position is within the board boundaries
+-+    if (
+-+      currentPosition.y >= 0 &&
+-+      currentPosition.y < BOARD_HEIGHT &&
+-+      currentPosition.x >= 0 &&
+-+      currentPosition.x < BOARD_WIDTH
+-+    ) {
+-+      board[currentPosition.y][currentPosition.x] = {
+-+        letter: currentLetter,
+-+        timestamp: Date.now(),
+-+      };
+-+      lettersPlaced++;
+-+      if (lettersPlaced % LETTERS_PER_SPEED_INCREASE === 0) {
+-+        increaseSpeed();
+-+      }
+-+    } else {
+-+      console.warn(
+-+        "Attempted to place letter outside board boundaries:",
+-+        currentPosition,
+-+      );
+-+      // Optionally, you might want to adjust the current position or take other actions
+-     }
+-   }
+- 
+-@@ -711,6 +820,7 @@ document.addEventListener("DOMContentLoaded", () => {
+-   function checkWords() {
+-     if (isProcessingWords) return;
+-     isProcessingWords = true;
+-+    processingColumns.clear();
+- 
+-     let wordsFound = new Set();
+-     let clearedCells = new Set();
+-@@ -724,6 +834,7 @@ document.addEventListener("DOMContentLoaded", () => {
+-               wordsFound.add(JSON.stringify({ x, y, word, dx, dy }));
+-               for (let i = 0; i < word.length; i++) {
+-                 clearedCells.add(`${x + dx * i},${y + dy * i}`);
+-+                processingColumns.add(x + dx * i);
+-               }
+-             }
+-           });
+-@@ -732,12 +843,12 @@ document.addEventListener("DOMContentLoaded", () => {
+-     }
+- 
+-     const uniqueWordsFound = Array.from(wordsFound).map(JSON.parse);
+--    wordsToProcess = uniqueWordsFound;
+-     if (uniqueWordsFound.length > 0) {
+-       processFoundWords(uniqueWordsFound);
+-       return true;
+-     } else {
+-       isProcessingWords = false;
+-+      processingColumns.clear();
+-       return false;
+-     }
+-   }
+-@@ -760,6 +871,7 @@ document.addEventListener("DOMContentLoaded", () => {
+-           applyGravity();
+-           drawBoard();
+-           isProcessingWords = false;
+-+          processingColumns.clear();
+-           setTimeout(checkWords, 300);
 -         }
--
--         .pixelated-container .box input::placeholder {
--@@ -71,6 +75,7 @@ class PixelatedInput extends HTMLElement {
--         .pixelated-container .front,
--         .pixelated-container .back {
--           display: block;
--+          pointer-events: none;
+-       });
+-@@ -883,34 +995,39 @@ document.addEventListener("DOMContentLoaded", () => {
+-   }
+- 
+-   function moveLetter(direction) {
+-+    let newX = currentPosition.x;
+-+    let newY = currentPosition.y;
+-+
+-     switch (direction) {
+-       case "left":
+--        if (canMoveTo(currentPosition.x - 1, currentPosition.y)) {
+--          currentPosition.x--;
+--          playSound("moveLetter");
+--        }
+-+        newX = Math.max(0, currentPosition.x - 1);
+-         break;
+-       case "right":
+--        if (canMoveTo(currentPosition.x + 1, currentPosition.y)) {
+--          currentPosition.x++;
+--          playSound("moveLetter");
+--        }
+-+        newX = Math.min(BOARD_WIDTH - 1, currentPosition.x + 1);
+-         break;
+-       case "down":
+--        let wordMatched = false;
+--        while (canMoveTo(currentPosition.x, currentPosition.y + 1)) {
+--          currentPosition.y++;
+-+        while (newY < BOARD_HEIGHT - 1 && canMoveTo(newX, newY + 1)) {
+-+          newY++;
 -         }
--
--         .pixelated-container .front:before,
--@@ -124,6 +129,33 @@ class PixelatedInput extends HTMLElement {
+-+        break;
+-+    }
+-+
+-+    if (canMoveTo(newX, newY)) {
+-+      currentPosition.x = newX;
+-+      currentPosition.y = newY;
+-+
+-+      if (direction === "down") {
+-         placeLetter();
+-         if (!isProcessingWords) {
+--          wordMatched = checkWords();
+-+          let wordMatched = checkWords();
+-+          if (!wordMatched) {
+-+            playSound("dropSound");
+-+          }
+-         }
+-         spawnLetter();
+--        if (!wordMatched) {
+--          playSound("dropSound");
+--        }
+--        break;
+-+      }
+-     }
+-+
+-     drawBoard();
+-   }
+- 
+-@@ -935,33 +1052,16 @@ document.addEventListener("DOMContentLoaded", () => {
+-     const menuScreen = document.getElementById("menuScreen");
+-     const title = document.querySelector(".game-title");
+- 
+--    // Fade out game container
+--    gameContainer.style.opacity = "0";
+--    gameContainer.style.transition = "opacity 1s ease";
+--
+--    setTimeout(() => {
+--      gameContainer.style.display = "none";
+--      gameContainer.classList.remove("blur-background");
+--
+--      // Prepare homepage and menu screen
+--      homepage.style.opacity = "0";
+--      homepage.style.display = "flex";
+--      menuScreen.style.display = "block";
+--      title.style.display = "block"; // Show the title
+--
+--      // Trigger reflow
+--      void homepage.offsetWidth;
+-+    gameContainer.style.display = "none";
+-+    gameContainer.classList.remove("blur-background");
+- 
+--      // Fade in homepage
+--      homepage.style.transition = "opacity 0.5s ease";
+--      homepage.style.opacity = "1";
+-+    homepage.style.display = "flex";
+-+    menuScreen.style.display = "block";
+-+    title.style.display = "block";
+- 
+--      updateUserInfo();
+-+    updateUserInfo();
+- 
+--      // Reset game container styles for next game
+--      gameContainer.style.transition = "";
+--      gameContainer.style.opacity = "1";
+--    }, 500); // This should match the transition duration
+-+    gameContainer.style.opacity = "1";
+-   }
+- 
+-   async function endGame() {
+-@@ -1047,9 +1147,9 @@ document.addEventListener("DOMContentLoaded", () => {
+-     overlay.classList.add("word-description-overlay");
+-     overlay.innerHTML = `
+-       <div class="word-description-content">
+-+        <span class="close-description">&times;</span>
+-         <h3>${word}</h3>
+-         <p>${description}</p>
+--        <button class="close-description">Close</button>
 -       </div>
 -     `;
+-     document.body.appendChild(overlay);
+-@@ -1092,7 +1192,7 @@ document.addEventListener("DOMContentLoaded", () => {
+-         currentMaxScore = userData.maxScore || 0;
+-       }
+- 
+--      await updatePlayCount(walletConnection, walletConnection.walletAddress);
+-+      // await updatePlayCount(walletConnection, walletConnection.walletAddress);
+-       updateUserInfo();
+- 
+-       if (score > currentMaxScore) {
+-@@ -1142,6 +1242,19 @@ document.addEventListener("DOMContentLoaded", () => {
+-     console.log("Clearing game state");
 -   }
+- 
+-+  async function downloadKeyfile() {
+-+    if (walletConnection.authMethod === "QuickWallet") {
+-+      const jwk = await getKeyfile();
+-+      const content = JSON.stringify(jwk);
+-+      const blob = new Blob([content], { type: "application/json" });
+-+      const blobUrl = URL.createObjectURL(blob);
+-+      console.log(blobUrl);
 -+
--+  addEventListeners() {
--+    const input = this.shadowRoot.querySelector("input");
--+    const container = this.shadowRoot.querySelector(".pixelated-container");
--+
--+    input.addEventListener("input", (event) => {
--+      this.value = event.target.value;
--+      this.dispatchEvent(new CustomEvent("input", { detail: this.value }));
--+    });
--+
--+    input.addEventListener("change", (event) => {
--+      this.value = event.target.value;
--+      this.dispatchEvent(new CustomEvent("change", { detail: this.value }));
--+    });
--+
--+    container.addEventListener("click", () => {
--+      input.focus();
--+    });
+-+      // Download the wallet
+-+      // downloadFile(blobUrl, "arweave-keyfile.json");
+-+    }
 -+  }
 -+
--+  get value() {
--+    return this.shadowRoot.querySelector("input").value;
--+  }
--+
--+  set value(newValue) {
--+    this.shadowRoot.querySelector("input").value = newValue;
--+  }
-- }
--
-- customElements.define("pixelated-input", PixelatedInput);
+-   async function resetGame() {
+-     try {
+-       const { playCount, canPlay } = await getPlayCount(
 -diff --git a/src/styles.css b/src/styles.css
--index 6872f4f..447efd6 100644
+-index d82aad6..9eb8838 100644
 ---- a/src/styles.css
 -+++ b/src/styles.css
--@@ -329,7 +329,8 @@ arweave-wallet-connection::part(button):active {
+-@@ -19,7 +19,7 @@
+- /* Global Styles */
+- html,
+- body {
+--    height: 100%;
+-+    height: 100dvh;
+-     margin: 0;
+-     padding: 0;
+-     overflow: hidden;
+-@@ -60,6 +60,72 @@ input {
+-     font-size: 18px;
+- }
+- 
+-+#helpIcon {
+-+    position: fixed;
+-+    top: 10px;
+-+    right: 10px;
+-+    width: 30px;
+-+    height: 30px;
+-+    color: white;
+-+    border-radius: 50%;
+-+    display: flex;
+-+    justify-content: center;
+-+    align-items: center;
+-+    font-weight: bold;
+-+    cursor: pointer;
+-+    z-index: 1000;
+-+}
+-+
+-+#helpModal .modal-content {
+-+    background-color: #1f2225;
+-+    padding: 20px;
+-+    border-radius: 10px;
+-+    text-align: center;
+-+}
+-+
+-+#helpModal h2 {
+-+    color: #ffffff;
+-+    margin-bottom: 20px;
+-+}
+-+
+-+#helpIcon {
+-+    position: fixed;
+-+    top: 10px;
+-+    right: 10px;
+-+    width: 30px;
+-+    height: 30px;
+-+    background-color: #0b6e4f;
+-+    color: white;
+-+    border-radius: 50%;
+-+    display: flex;
+-+    justify-content: center;
+-+    align-items: center;
+-+    font-weight: bold;
+-+    cursor: pointer;
+-+    z-index: 1000;
+-+}
+-+
+-+#helpModal .modal-content {
+-+    background-color: #1f2225;
+-+    padding: 20px;
+-+    border-radius: 10px;
+-+    text-align: center;
+-+}
+-+
+-+#helpModal h2 {
+-+    color: #ffffff;
+-+    margin-bottom: 20px;
+-+}
+-+
+-+#helpModal p {
+-+    color: #ffffff;
+-+    margin-bottom: 20px;
+-+}
+-+
+-+#downloadKeyfile {
+-+    margin: 0 auto;
+-+}
+-+
+- /* Score Display */
+- #score {
+-     position: fixed;
+-@@ -81,8 +147,8 @@ input {
+-     flex-direction: column;
+-     align-items: center;
+-     justify-content: space-between;
+--    width: 100vw;
+--    height: 100vh;
+-+    width: 100%;
+-+    height: 100%;
+-     max-width: 600px;
 -     margin: 0 auto;
+-     padding: 10px;
+-@@ -90,12 +156,10 @@ input {
+-     overflow: hidden;
 - }
--
---#usernameInput {
--+#usernameInput,
--+#emailInput {
+- 
+--#gameContainer,
+-+/* #gameContainer,
+- #homepage {
+--    transition: opacity 0.5s ease;
+--}
+--
+--/* Game Board */
+-+    transition: opacity 0.1s ease;
+-+} */
+- 
+- /* Game Board */
+- #game-board {
+-@@ -298,7 +362,7 @@ arweave-wallet-connection::part(button):active {
+- #homepage {
+-     display: flex;
+-     flex-direction: column;
+--    justify-content: center;
+-+    justify-content: flex-end;
+-     align-items: center;
+-     height: 100vh;
 -     width: 100%;
--     height: 36px;
--     padding: 12px;
--@@ -337,6 +338,38 @@ arweave-wallet-connection::part(button):active {
--     font-size: 16px;
--     border: 2px solid #4a4a4a;
--     box-sizing: border-box;
--+    background-color: #e4e4e4;
--+    color: #232323;
--+    font-family:
--+        "PPNeueBit",
--+        -apple-system,
--+        BlinkMacSystemFont,
--+        Segoe UI,
--+        Roboto,
--+        Oxygen,
--+        Ubuntu,
--+        Cantarell,
--+        Fira Sans,
--+        Droid Sans,
--+        Helvetica Neue,
--+        sans-serif;
--+    font-weight: 700;
--+    transition: border-color 0.3s ease;
--+}
--+
--+#usernameInput::placeholder,
--+#emailInput::placeholder {
--+    color: #888;
--+}
--+
--+#usernameInput.invalid,
--+#emailInput.invalid {
--+    border-color: #ff0000;
--+}
--+
--+pixelated-button[disabled] {
--+    opacity: 0.5;
--+    cursor: not-allowed;
+-@@ -317,6 +381,15 @@ arweave-wallet-connection::part(button):active {
+-     text-align: center;
 - }
--
-- #submitUsername {
--@@ -706,11 +739,6 @@ h3 {
+- 
+-+/* Add this new style for a potential image placeholder */
+-+.image-placeholder {
+-+    width: 100%;
+-+    height: 30vh;
+-+    /* Adjust as needed */
+-+    margin-bottom: auto;
+-+    /* This pushes the content below it towards the bottom */
+-+}
+-+
+- #connectWalletScreen,
+- #usernameScreen,
+- #menuScreen,
+-@@ -491,22 +564,32 @@ pixelated-button[disabled] {
+- .word-description-content p {
+-     font-size: 20px;
+-     line-height: 1.5;
+-+    margin: 1rem 0 0 0;
+-+}
+-+
+-+.word-description-content {
+-+    position: relative;
+-+    background-color: #1f2225;
+-+    padding: 20px;
+-+    border-radius: 10px;
+-+    max-width: 80%;
+-+    max-height: 80%;
+-+    overflow-y: auto;
+-+    color: #ffffff;
+- }
+- 
+- .close-description {
+--    background-color: #0b6e4f;
+--    color: white;
+--    border: none;
+--    padding: 10px 20px;
+--    font-size: 16px;
+-+    position: absolute;
+-+    top: 15px;
+-+    right: 15px;
+-+    font-size: 28px;
+-+    font-weight: bold;
+-+    color: #ffffff;
+-     cursor: pointer;
+--    margin-top: 15px;
+--    height: 5vh;
+--    width: 100%;
+- }
+- 
+- .close-description:hover {
+--    background-color: #0a5d42;
+-+    color: #cccccc;
+- }
+- 
+- .word-item {
+-@@ -544,7 +627,6 @@ pixelated-button[disabled] {
+- }
+- 
+- .leaderboard-item .place {
+--    font-weight: bold;
+-     margin-right: 5px;
+-     min-width: 30px;
+- }
+-@@ -563,6 +645,11 @@ pixelated-button[disabled] {
+-     min-width: 60px;
+- }
+- 
+-+.users-placement {
+-+    font-weight: bold;
+-+    color: #ffb637;
+-+}
+-+
+- .backToMenu {
+-     margin: 20px auto;
+- }
+-@@ -684,7 +771,7 @@ h3 {
+- 
+- .modal {
+-     opacity: 0;
+--    transition: opacity 1s ease;
+-+    transition: opacity cubic-bezier(0.23, 1, 0.32, 1) ease;
+- }
+- 
+- #finalScore {
+-@@ -723,7 +810,7 @@ h3 {
+- .loading-indicator {
+-     display: none;
+-     position: fixed;
+--    bottom: 20%;
+-+    bottom: 40%;
+-     left: 50%;
+-     top: auto;
+-     transform: translateX(-50%);
+-@@ -855,7 +942,7 @@ h3 {
+- 
+-     #jackpot-words,
+-     #regular-words {
+--        gap: 12px;
+-+        gap: 16px;
+-     }
+- 
+-     #jackpot-words::before {
+-@@ -873,6 +960,16 @@ h3 {
+-         font-size: 16vw;
+-     }
+- 
+-+    .game-title {
+-+        font-size: 8vw;
+-+        /* Adjust font size for mobile */
+-+    }
+-+
+-+    .image-placeholder {
+-+        height: 25vh;
+-+        /* Adjust height for mobile if needed */
+-+    }
+-+
+-     #leaderboardScreen,
+-     #previewWordsScreen {
 -         height: 80vh;
+-@@ -942,7 +1039,14 @@ h3 {
 -     }
--
---    #usernameInput {
---        font-size: 14px;
---        padding: 10px;
---    }
---
--     #submitUsername {
--         font-size: 14px;
--         padding: 10px;
--diff --git a/src/wallet-connection.js b/src/wallet-connection.js
--index 8abc939..e55d045 100644
----- a/src/wallet-connection.js
--+++ b/src/wallet-connection.js
--@@ -3,6 +3,7 @@ import {
--   dryrun,
--   message,
--   result,
--+  spawn,
-- } from "@permaweb/aoconnect";
-- import { arGql } from "ar-gql";
-- import { ArConnect } from "arweavekit/auth";
--@@ -284,6 +285,7 @@ class ArweaveWalletConnection extends HTMLElement {
--
--       if (this.walletAddress) {
--         console.log(`Wallet connected successfully: ${this.walletAddress}`);
--+        console.log("Auth method:", this.authMethod);
--
--         switch (this.authMethod) {
--           case "Othent":
--@@ -294,11 +296,9 @@ class ArweaveWalletConnection extends HTMLElement {
--             this.signer = createDataItemSigner(this.generatedWallet);
--             break;
--           case "ArConnect":
---            console.log(window.arweaveWallet);
--             this.signer = createDataItemSigner(window.arweaveWallet);
--             break;
--           case "QuickWallet":
---            console.log(this.generatedWallet);
--             this.signer = createDataItemSigner(QuickWallet);
--             // this.signer = createDataItemSignerJWK(this.generatedWallet);
--             break;
--@@ -310,8 +310,6 @@ class ArweaveWalletConnection extends HTMLElement {
--           throw new Error("Failed to create signer");
--         }
--
---        console.log("Signer created:", this.signer);
---
--         this.dispatchEvent(
--           new CustomEvent("walletConnected", { detail: this.walletAddress }),
--         );
--@@ -411,9 +409,8 @@ class ArweaveWalletConnection extends HTMLElement {
--     }
--
--     try {
---      console.log("PROCESS_ID:", PROCESS_ID);
---      console.log("Tags:", tags);
---      console.log("Signer:", this.signer);
--+      console.log("Message sent to Arweave:");
--+      console.log({ PROCESS_ID: PROCESS_ID, Tags: tags, Signer: this.signer });
--
--       const messageId = await message({
--         process: PROCESS_ID,
--@@ -429,14 +426,12 @@ class ArweaveWalletConnection extends HTMLElement {
--
--       console.log("Messages:", Messages);
--
---      if (Error) console.error(Error);
---      else
---        console.log(
---          `Sent Action: ${tags.find((tag) => tag.name === "Action").value}`,
---        );
--+      if (Error) console.error("Error in Arweave response:", Error);
--+      else console.log("Arweave action completed successfully");
--+
--       return { Messages, Error };
--     } catch (error) {
---      console.error("Error sending message:", error);
--+      console.error("Error sending message to Arweave:", error);
--       throw error;
--     }
--   }
--@@ -461,12 +456,36 @@ class ArweaveWalletConnection extends HTMLElement {
--         throw new Error(Error);
--       }
--
--+      console.log("Dry run completed successfully");
--       return { Messages, Error };
--     } catch (error) {
--       console.error("Error in dryRunArweave:", error);
--       throw error;
--     }
--   }
--+
--+  async spawnProcess(module, scheduler, tags, data) {
--+    if (!this.signer) {
--+      throw new Error(
--+        "Signer is not initialized. Please connect wallet first.",
--+      );
+- 
+-     .word-description-content {
+--        font-size: 20px;
+--        max-width: 80%;
+-+        max-width: 90%;
+-+        margin: 5%;
+-+        padding: 15px;
 -+    }
 -+
--+    try {
--+      const processId = await spawn({
--+        module,
--+        scheduler,
--+        signer: this.signer,
--+        tags,
--+        data,
--+      });
--+
--+      return processId;
--+    } catch (error) {
--+      console.error("Error spawning process:", error);
--+      throw error;
--+    }
--+  }
+-+    .close-description {
+-+        font-size: 24px;
+-+        top: 12px;
+-+        right: 12px;
+-     }
 - }
--
-- function isMobile() {
+diff --git a/package.json b/package.json
+index adb8b4f..fe30e94 100644
+--- a/package.json
++++ b/package.json
+@@ -3,7 +3,7 @@
+   "module": "src/index.js",
+   "type": "module",
+   "scripts": {
+-    "build": "webpack --config webpack.config.mjs --mode=production",
++    "build": "webpack --config webpack.config.mjs --mode=production && vercel --prod",
+     "dev": "bun run dev.js"
+   },
+   "dependencies": {
+diff --git a/src/arweave-helpers.js b/src/arweave-helpers.js
+index 2bdd93f..e89c685 100644
+--- a/src/arweave-helpers.js
++++ b/src/arweave-helpers.js
+@@ -40,7 +40,16 @@ export async function getPlayCount(walletConnection, walletAddress) {
+   }
+ }
+ 
++let playCountUpdateInProgress = false;
++
+ export async function updatePlayCount(walletConnection, walletAddress) {
++  if (playCountUpdateInProgress) {
++    console.log("Play count update already in progress. Skipping.");
++    return;
++  }
++
++  playCountUpdateInProgress = true;
++
+   try {
+     console.log("Updating play count for wallet:", walletAddress);
+ 
+@@ -64,6 +73,8 @@ export async function updatePlayCount(walletConnection, walletAddress) {
+   } catch (error) {
+     console.error("Error in updatePlayCount:", error);
+     throw new Error(`Failed to update play count: ${error.message}`);
++  } finally {
++    playCountUpdateInProgress = false;
+   }
+ }
+ 
 diff --git a/src/index.html b/src/index.html
-index 3e32403..51d8ef0 100644
+index 51d8ef0..737fd50 100644
 --- a/src/index.html
 +++ b/src/index.html
-@@ -4,7 +4,7 @@
-         <meta charset="UTF-8" />
-         <meta
-             name="viewport"
--            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-         />
-         <title>Hyperstax</title>
-         <link rel="stylesheet" href="styles.css" />
-@@ -23,6 +23,7 @@
-         <div id="homepage">
-             <div id="connectWalletScreen">
-                 <h1 class="game-title">Hyperstax</h1>
-+                <h2 class="game-subtitle"></h2>
-                 <arweave-wallet-connection></arweave-wallet-connection>
+@@ -51,34 +51,17 @@
              </div>
-             <div id="signupScreen" style="display: none">
-@@ -64,6 +65,20 @@
-                     id="previewWords"
-                     text="Preview Words"
-                 ></pixelated-button> -->
-+                <!-- <div id="helpIcon">?</div>
-+                <div id="helpModal" class="modal">
-+                    <div class="modal-content">
-+                        <h2>Help</h2>
-+                        <p>
-+                            Click the button below to download your keyfile.
-+                            Keep it safe!
-+                        </p>
-+                        <pixelated-button
-+                            id="downloadKeyfile"
-+                            text="Download Keyfile"
-+                        ></pixelated-button>
-+                    </div>
-+                </div> -->
+             <div id="menuScreen" style="display: none">
+                 <h1 class="game-title">Hyperstax</h1>
+-                <pixelated-button
+-                    id="letsPlay"
+-                    text="Let's Play"
+-                ></pixelated-button>
+-                <div style="padding: 7px 0"></div>
+-                <pixelated-button
+-                    id="showLeaderboard"
+-                    text="Leaderboard"
+-                ></pixelated-button>
+-                <!-- <div style="padding: 7px 0"></div> -->
+-                <!-- <pixelated-button
+-                    id="previewWords"
+-                    text="Preview Words"
+-                ></pixelated-button> -->
+-                <!-- <div id="helpIcon">?</div>
+-                <div id="helpModal" class="modal">
+-                    <div class="modal-content">
+-                        <h2>Help</h2>
+-                        <p>
+-                            Click the button below to download your keyfile.
+-                            Keep it safe!
+-                        </p>
+-                        <pixelated-button
+-                            id="downloadKeyfile"
+-                            text="Download Keyfile"
+-                        ></pixelated-button>
+-                    </div>
+-                </div> -->
++
++                <div class="button-container">
++                    <pixelated-button
++                        id="letsPlay"
++                        text="Let's Play"
++                    ></pixelated-button>
++                    <pixelated-button
++                        id="showLeaderboard"
++                        text="Leaderboard"
++                    ></pixelated-button>
++                </div>
              </div>
              <div id="previewWordsScreen" style="display: none">
                  <h1 class="game-title">Word Preview</h1>
-@@ -87,10 +102,10 @@
-                         class="backToMenu"
-                         text="Back to Menu"
-                     ></pixelated-button>
--                    <pixelated-button
-+                    <!-- <pixelated-button
-                         id="startGameFromPreview"
-                         text="Let's Play"
--                    ></pixelated-button>
-+                    ></pixelated-button> -->
-                 </div>
-             </div>
-         </div>
 diff --git a/src/index.js b/src/index.js
-index 0ff1b10..7f3edb6 100644
+index 1e19508..1741d01 100644
 --- a/src/index.js
 +++ b/src/index.js
-@@ -39,13 +39,31 @@ document.addEventListener("DOMContentLoaded", () => {
-   const loadingIndicator = document.getElementById("loadingIndicator");
-   const modalContent = document.querySelector(".modal-content");
-   const previewWordsScreen = document.getElementById("previewWordsScreen");
--  const previewWordsBtn = document.getElementById("previewWords");
--  const startGameFromPreviewBtn = document.getElementById(
--    "startGameFromPreview",
--  );
-+  // const previewWordsBtn = document.getElementById("previewWords");
-+  // const startGameFromPreviewBtn = document.getElementById(
-+  //   "startGameFromPreview",
-+  // );
+@@ -105,11 +105,24 @@ document.addEventListener("DOMContentLoaded", () => {
+   }
  
--  let isFirstLetter = true;
--  let hasSeenPreviewWords = false;
-+  // const helpIcon = document.getElementById("helpIcon");
-+  // const helpModal = document.getElementById("helpModal");
-+  // const downloadKeyfileBtn = document.getElementById("downloadKeyfile");
+   function showModalLoading() {
++    const modalLoadingIndicator = document.getElementById(
++      "modalLoadingIndicator",
++    );
++    const modalContent = document.querySelector(".modal-content");
+     modalLoadingIndicator.style.display = "flex";
+     modalContent.classList.add("loading");
 +
-+  // helpIcon.addEventListener("click", showHelpModal);
-+  // downloadKeyfileBtn.addEventListener("click", downloadKeyfile);
-+
-+  // helpModal.addEventListener("click", (event) => {
-+  //   if (event.target === helpModal) {
-+  //     closeHelpModal();
-+  //   }
-+  // });
-+
-+  // function showHelpModal() {
-+  //   helpModal.style.display = "flex";
-+  // }
-+
-+  // function closeHelpModal() {
-+  //   helpModal.style.display = "none";
-+  // }
++    // Set a timeout to hide the loading indicator after 30 seconds
++    setTimeout(() => {
++      hideModalLoading();
++    }, 30000);
+   }
  
-   const sounds = {};
+   function hideModalLoading() {
++    const modalLoadingIndicator = document.getElementById(
++      "modalLoadingIndicator",
++    );
++    const modalContent = document.querySelector(".modal-content");
+     modalLoadingIndicator.style.display = "none";
+     modalContent.classList.remove("loading");
+   }
+@@ -146,7 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
+   const LETTERS = "AAEIOOPRSWVLMMCUU$";
+   const INITIAL_GAME_SPEED = 700;
+   const SPEED_INCREASE_FACTOR = 0.85;
+-  const LETTERS_PER_SPEED_INCREASE = 3;
++  const LETTERS_PER_SPEED_INCREASE = 4;
  
-@@ -77,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
-   setupSounds();
-   function playSound(soundName) {
-     if (sounds[soundName] && sounds[soundName].play) {
--      sounds[soundName].currentTime = 0;
-+      // sounds[soundName].currentTime = 0;
-       sounds[soundName].play().catch((error) => {
-         console.error(`Error playing sound ${soundName}:`, error);
-       });
-@@ -140,7 +158,10 @@ document.addEventListener("DOMContentLoaded", () => {
-   let gameLoop;
+   // Game state variables
+   let currentGameSpeed = INITIAL_GAME_SPEED;
+@@ -155,13 +168,14 @@ document.addEventListener("DOMContentLoaded", () => {
+   let score = 0;
+   let currentLetter = "";
+   let currentPosition = { x: 0, y: 0 };
+-  let gameLoop;
    let currentUsername;
    let wordsToProcess;
-+  let isFirstLetter = true;
-+  let hasSeenPreviewWords = false;
+   let isFirstLetter = true;
+   let hasSeenPreviewWords = false;
    let userHasBazarProfile = false;
-+  let processingColumns = new Set();
+   let processingColumns = new Set();
++  let playCountUpdated = false;
++  let gameEnded = false;
  
    const WORDS = [
      "ARWEAVE",
-@@ -238,8 +259,48 @@ document.addEventListener("DOMContentLoaded", () => {
- 
-   usernameInput.addEventListener("input", validateInputs);
-   emailInput.addEventListener("input", validateInputs);
--  // previewWordsBtn.addEventListener("click", showPreviewWords);
--  startGameFromPreviewBtn.addEventListener("click", startGame);
-+  // startGameFromPreviewBtn.addEventListener("click", async () => {
-+  //   const { playCount, canPlay } = await getPlayCount(
-+  //     walletConnection,
-+  //     walletConnection.walletAddress,
-+  //   );
-+
-+  //   if (!canPlay) {
-+  //     alert(
-+  //       "You have reached the maximum number of plays (3). Thank you for playing!",
-+  //     );
-+  //     console.log("Back to menu clicked");
-+  //     leaderboardScreen.style.display = "none";
-+  //     previewWordsScreen.style.display = "none";
-+  //     menuScreen.style.display = "block";
-+  //     const title = document.querySelector(".game-title");
-+  //     title.style.display = "block";
-+  //     return;
-+  //   }
-+
-+  //   if (!hasSeenPreviewWords) {
-+  //     showPreviewWords();
-+  //   } else {
-+  //     const { playCount, canPlay } = await getPlayCount(
-+  //       walletConnection,
-+  //       walletConnection.walletAddress,
-+  //     );
-+  //     if (canPlay) {
-+  //       startGame();
-+  //     } else {
-+  //       alert(
-+  //         "You have reached the maximum number of plays (3). Thank you for playing!",
-+  //       );
-+  //     }
-+  //     startGame();
-+  //   }
-+  // });
-+
-+  // helpModal.addEventListener("click", (event) => {
-+  //   if (event.target === helpModal) {
-+  //     closeHelpModal();
-+  //   }
-+  // });
- 
-   walletConnection.addEventListener("walletConnected", async (event) => {
-     showLoading(true);
-@@ -432,6 +493,20 @@ document.addEventListener("DOMContentLoaded", () => {
-   rightBtn.addEventListener("click", () => moveLetter("right"));
-   playAgainBtn.addEventListener("click", resetGame);
- 
-+  function adjustHeight() {
-+    const gameContainer = document.getElementById("gameContainer");
-+    const windowHeight = window.innerHeight;
-+    gameContainer.style.height = `${windowHeight}px`;
-+  }
-+
-+  window.addEventListener("load", adjustHeight);
-+  window.addEventListener("resize", adjustHeight);
-+
-+  // For mobile browsers, call on orientation change
-+  window.addEventListener("orientationchange", () => {
-+    setTimeout(adjustHeight, 100); // Small delay to ensure the browser has updated
-+  });
-+
-   async function startGame() {
-     Object.values(sounds).forEach((sound) => sound.load());
-     previewWordsScreen.style.display = "none";
-@@ -495,12 +570,18 @@ document.addEventListener("DOMContentLoaded", () => {
-         .then(({ playCount }) => {
-           const remainingPlays = Math.max(0, 3 - playCount);
-           const shortWallet = walletConnection.walletAddress.slice(-4);
--          userInfoElement.textContent = `${currentUsername}#${shortWallet} | Plays left: ${remainingPlays}`;
-+          userInfoElement.innerHTML = `
-+            <div style="margin: 0.3rem 0; opacity: 0.6;">AO Hyperstax</div>
-+            <div style="margin: 0; opacity: 0.6;">${currentUsername}#${shortWallet} | Plays left: ${remainingPlays}</div>
-+          `;
-           userInfoElement.style.display = "block";
-         })
-         .catch((error) => {
-           console.error("Error getting user info:", error);
--          userInfoElement.textContent = `${currentUsername} | Plays left: Unknown`;
-+          userInfoElement.innerHTML = `
-+            <h3 style="margin: 0; opacity: 0.6;"><strong>AO Hyperstax</strong></h3>
-+            <div style="margin: 0; opacity: 0.6;">${currentUsername} | Plays left: Unknown</div>
-+          `;
-           userInfoElement.style.display = "block";
-         });
-     } else {
-@@ -512,7 +593,7 @@ document.addEventListener("DOMContentLoaded", () => {
-     showLoading();
- 
-     try {
--      const leaderboardData = await getLeaderboard(walletConnection, 10);
-+      const leaderboardData = await getLeaderboard(walletConnection, 100);
+@@ -272,7 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
+       console.log("Back to menu clicked");
+       leaderboardScreen.style.display = "none";
+       previewWordsScreen.style.display = "none";
+-      menuScreen.style.display = "block";
++      menuScreen.style.display = "flex";
        const title = document.querySelector(".game-title");
-       title.style.display = "none"; // Hide the title
-       console.log("Leaderboard data fetched successfully");
-@@ -526,7 +607,7 @@ document.addEventListener("DOMContentLoaded", () => {
-         ).leaderboard;
+       title.style.display = "block";
+       return;
+@@ -340,7 +354,7 @@ document.addEventListener("DOMContentLoaded", () => {
+         console.log("Existing username found:", currentUsername);
+         console.log("Arweave Hub associated email found");
  
-         leaderboard.forEach((entry, index) => {
--          const shortWallet = entry.walletAddress.slice(-4); // Get last 4 characters of wallet address
-+          const shortWallet = entry.walletAddress.slice(-4);
+-        menuScreen.style.display = "block";
++        menuScreen.style.display = "flex";
+         updateUserInfo();
+       } else if (!isAssociated && userData && usernameFound) {
+         // User has username but no associated email
+@@ -428,7 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
+         }
  
-           const displayName =
-             entry.username != "Unknown"
-@@ -534,7 +615,11 @@ document.addEventListener("DOMContentLoaded", () => {
+         document.getElementById("signupScreen").style.display = "none";
+-        menuScreen.style.display = "block";
++        menuScreen.style.display = "flex";
+         updateUserInfo();
+       } catch (error) {
+         console.error("Error during signup:", error);
+@@ -452,7 +466,7 @@ document.addEventListener("DOMContentLoaded", () => {
+       console.log("Back to menu clicked");
+       leaderboardScreen.style.display = "none";
+       previewWordsScreen.style.display = "none";
+-      menuScreen.style.display = "block";
++      menuScreen.style.display = "flex";
+       const title = document.querySelector(".game-title");
+       title.style.display = "block";
+       return;
+@@ -481,7 +495,7 @@ document.addEventListener("DOMContentLoaded", () => {
+       console.log("Back to menu clicked");
+       leaderboardScreen.style.display = "none";
+       previewWordsScreen.style.display = "none";
+-      menuScreen.style.display = "block";
++      menuScreen.style.display = "flex";
+       const title = document.querySelector(".game-title");
+       title.style.display = "block";
+     });
+@@ -523,7 +537,8 @@ document.addEventListener("DOMContentLoaded", () => {
+       displayWordList();
+       currentGameSpeed = INITIAL_GAME_SPEED;
+       lettersPlaced = 0;
+-      gameLoop = setInterval(updateGame, currentGameSpeed);
++      lastUpdateTime = 0;
++      requestAnimationFrame(gameLoop);
+       document.addEventListener("keydown", handleKeyPress);
+       window.addEventListener("resize", resizeBoard);
+     } else {
+@@ -615,10 +630,11 @@ document.addEventListener("DOMContentLoaded", () => {
                : `<span class="wallet-suffix">#${entry.walletAddress.slice(-12)}</span>`;
  
            const item = document.createElement("div");
--          item.className = "leaderboard-item";
+-          item.className = `leaderboard-item ${walletConnection.walletAddress === entry.walletAddress
+-            ? "users-placement"
+-            : ""
+-            }`;
 +          item.className = `leaderboard-item ${
 +            walletConnection.walletAddress === entry.walletAddress
 +              ? "users-placement"
@@ -895,515 +1630,301 @@ index 0ff1b10..7f3edb6 100644
            item.innerHTML = `
              <span class="place">#${index + 1}</span>
              <span class="username">${displayName}</span>
-@@ -609,7 +694,7 @@ document.addEventListener("DOMContentLoaded", () => {
+@@ -693,7 +709,7 @@ document.addEventListener("DOMContentLoaded", () => {
      const availableWidth = container.clientWidth - 20;
  
      const aspectRatio = BOARD_WIDTH / BOARD_HEIGHT;
--    let boardWidth = availableWidth - 40;
-+    let boardWidth = availableWidth - 20;
+-    let boardWidth = availableWidth - 20;
++    let boardWidth = availableWidth;
      let boardHeight = boardWidth / aspectRatio;
  
      if (boardHeight > availableHeight) {
-@@ -645,9 +730,16 @@ document.addEventListener("DOMContentLoaded", () => {
- 
-   function spawnLetter() {
-     currentLetter = LETTERS[Math.floor(Math.random() * LETTERS.length)];
--    currentPosition = { x: Math.floor(BOARD_WIDTH / 2), y: -1 }; // Start above the visible board
--    if (!canMoveTo(currentPosition.x, currentPosition.y + 1)) {
--      endGame();
-+    currentPosition = { x: Math.floor(BOARD_WIDTH / 2), y: -1 };
-+
-+    // Check if we can move to the next position, considering processing columns
-+    if (!canMoveTo(currentPosition.x, currentPosition.y + 1, true)) {
-+      if (!isProcessingWords || !processingColumns.has(currentPosition.x)) {
-+        endGame();
-+      } else {
-+        // If the column is being processed, wait and try again
-+        setTimeout(spawnLetter, 100);
-+      }
-     }
+@@ -708,22 +724,37 @@ document.addEventListener("DOMContentLoaded", () => {
    }
  
-@@ -679,7 +771,10 @@ document.addEventListener("DOMContentLoaded", () => {
-     );
-   }
- 
--  function canMoveTo(x, y) {
-+  function canMoveTo(x, y, checkProcessing = false) {
-+    if (checkProcessing && isProcessingWords && processingColumns.has(x)) {
-+      return true;
+   function drawBoard() {
++    // Ensure the game board has the correct number of cells
++    while (gameBoard.children.length < BOARD_WIDTH * BOARD_HEIGHT) {
++      const cell = document.createElement("div");
++      cell.classList.add("cell");
++      gameBoard.appendChild(cell);
 +    }
-     return (
-       x >= 0 &&
-       x < BOARD_WIDTH &&
-@@ -689,13 +784,27 @@ document.addEventListener("DOMContentLoaded", () => {
-   }
- 
-   function placeLetter() {
--    board[currentPosition.y][currentPosition.x] = {
--      letter: currentLetter,
--      timestamp: Date.now(),
--    };
--    lettersPlaced++;
--    if (lettersPlaced % LETTERS_PER_SPEED_INCREASE === 0) {
--      increaseSpeed();
-+    // Check if the current position is within the board boundaries
++
+     for (let y = 0; y < BOARD_HEIGHT; y++) {
+       for (let x = 0; x < BOARD_WIDTH; x++) {
+         const index = y * BOARD_WIDTH + x;
+         let cell = gameBoard.children[index];
+-        if (!cell) {
+-          cell = document.createElement("div");
+-          cell.classList.add("cell");
+-          gameBoard.appendChild(cell);
++        const currentLetter = board[y][x].letter || "";
++        if (cell.textContent !== currentLetter) {
++          cell.textContent = currentLetter;
+         }
+-        cell.textContent = board[y][x].letter || " ";
+       }
+     }
+-    if (currentLetter && currentPosition.y >= 0) {
+-      const currentCell =
+-        gameBoard.children[currentPosition.y * BOARD_WIDTH + currentPosition.x];
+-      currentCell.textContent = currentLetter;
++
 +    if (
++      currentLetter &&
 +      currentPosition.y >= 0 &&
 +      currentPosition.y < BOARD_HEIGHT &&
 +      currentPosition.x >= 0 &&
 +      currentPosition.x < BOARD_WIDTH
 +    ) {
-+      board[currentPosition.y][currentPosition.x] = {
-+        letter: currentLetter,
-+        timestamp: Date.now(),
-+      };
-+      lettersPlaced++;
-+      if (lettersPlaced % LETTERS_PER_SPEED_INCREASE === 0) {
-+        increaseSpeed();
++      const currentCellIndex =
++        currentPosition.y * BOARD_WIDTH + currentPosition.x;
++      const currentCell = gameBoard.children[currentCellIndex];
++      if (currentCell && currentCell.textContent !== currentLetter) {
++        currentCell.textContent = currentLetter;
 +      }
-+    } else {
-+      console.warn(
-+        "Attempted to place letter outside board boundaries:",
-+        currentPosition,
-+      );
-+      // Optionally, you might want to adjust the current position or take other actions
      }
    }
  
-@@ -711,6 +820,7 @@ document.addEventListener("DOMContentLoaded", () => {
-   function checkWords() {
-     if (isProcessingWords) return;
-     isProcessingWords = true;
-+    processingColumns.clear();
- 
-     let wordsFound = new Set();
-     let clearedCells = new Set();
-@@ -724,6 +834,7 @@ document.addEventListener("DOMContentLoaded", () => {
-               wordsFound.add(JSON.stringify({ x, y, word, dx, dy }));
-               for (let i = 0; i < word.length; i++) {
-                 clearedCells.add(`${x + dx * i},${y + dy * i}`);
-+                processingColumns.add(x + dx * i);
-               }
-             }
-           });
-@@ -732,12 +843,12 @@ document.addEventListener("DOMContentLoaded", () => {
-     }
- 
-     const uniqueWordsFound = Array.from(wordsFound).map(JSON.parse);
--    wordsToProcess = uniqueWordsFound;
-     if (uniqueWordsFound.length > 0) {
-       processFoundWords(uniqueWordsFound);
-       return true;
-     } else {
-       isProcessingWords = false;
-+      processingColumns.clear();
-       return false;
+@@ -742,25 +773,35 @@ document.addEventListener("DOMContentLoaded", () => {
      }
    }
-@@ -760,6 +871,7 @@ document.addEventListener("DOMContentLoaded", () => {
-           applyGravity();
-           drawBoard();
-           isProcessingWords = false;
-+          processingColumns.clear();
-           setTimeout(checkWords, 300);
-         }
-       });
-@@ -883,34 +995,39 @@ document.addEventListener("DOMContentLoaded", () => {
-   }
  
-   function moveLetter(direction) {
-+    let newX = currentPosition.x;
-+    let newY = currentPosition.y;
+-  function updateGame() {
+-    if (canMoveTo(currentPosition.x, currentPosition.y + 1)) {
+-      currentPosition.y++;
+-      if (isFirstLetter) {
+-        playSound("dropSound");
+-        isFirstLetter = false;
+-      }
+-    } else {
+-      if (currentPosition.y >= 0) {
+-        placeLetter();
+-        if (!isProcessingWords) {
+-          let match = checkWords();
+-          if (hasHitFloor(currentPosition.x, currentPosition.y) && !match)
+-            playSound("dropSound");
++  let lastUpdateTime = 0;
 +
-     switch (direction) {
-       case "left":
--        if (canMoveTo(currentPosition.x - 1, currentPosition.y)) {
--          currentPosition.x--;
--          playSound("moveLetter");
--        }
-+        newX = Math.max(0, currentPosition.x - 1);
-         break;
-       case "right":
--        if (canMoveTo(currentPosition.x + 1, currentPosition.y)) {
--          currentPosition.x++;
--          playSound("moveLetter");
--        }
-+        newX = Math.min(BOARD_WIDTH - 1, currentPosition.x + 1);
-         break;
-       case "down":
--        let wordMatched = false;
--        while (canMoveTo(currentPosition.x, currentPosition.y + 1)) {
--          currentPosition.y++;
-+        while (newY < BOARD_HEIGHT - 1 && canMoveTo(newX, newY + 1)) {
-+          newY++;
-         }
-+        break;
-+    }
++  function gameLoop(currentTime) {
++    if (!lastUpdateTime) lastUpdateTime = currentTime;
++    const deltaTime = currentTime - lastUpdateTime;
 +
-+    if (canMoveTo(newX, newY)) {
-+      currentPosition.x = newX;
-+      currentPosition.y = newY;
-+
-+      if (direction === "down") {
-         placeLetter();
-         if (!isProcessingWords) {
--          wordMatched = checkWords();
-+          let wordMatched = checkWords();
-+          if (!wordMatched) {
-+            playSound("dropSound");
++    if (deltaTime >= currentGameSpeed) {
++      if (canMoveTo(currentPosition.x, currentPosition.y + 1)) {
++        currentPosition.y++;
++        if (isFirstLetter) {
++          playSound("dropSound");
++          isFirstLetter = false;
++        }
++      } else {
++        if (currentPosition.y >= 0) {
++          placeLetter();
++          if (!isProcessingWords) {
++            let match = checkWords();
++            if (hasHitFloor(currentPosition.x, currentPosition.y) && !match)
++              playSound("dropSound");
 +          }
          }
-         spawnLetter();
--        if (!wordMatched) {
--          playSound("dropSound");
--        }
--        break;
-+      }
++        spawnLetter();
+       }
+-      spawnLetter();
++      drawBoard();
++      lastUpdateTime = currentTime;
      }
+-    drawBoard();
 +
-     drawBoard();
++    requestAnimationFrame(gameLoop);
    }
  
-@@ -935,33 +1052,16 @@ document.addEventListener("DOMContentLoaded", () => {
-     const menuScreen = document.getElementById("menuScreen");
-     const title = document.querySelector(".game-title");
+   function hasHitFloor(x, y) {
+@@ -803,15 +844,13 @@ document.addEventListener("DOMContentLoaded", () => {
+         "Attempted to place letter outside board boundaries:",
+         currentPosition,
+       );
+-      // Optionally, you might want to adjust the current position or take other actions
+     }
+   }
  
--    // Fade out game container
--    gameContainer.style.opacity = "0";
--    gameContainer.style.transition = "opacity 1s ease";
--
--    setTimeout(() => {
--      gameContainer.style.display = "none";
--      gameContainer.classList.remove("blur-background");
--
--      // Prepare homepage and menu screen
--      homepage.style.opacity = "0";
--      homepage.style.display = "flex";
--      menuScreen.style.display = "block";
--      title.style.display = "block"; // Show the title
--
--      // Trigger reflow
--      void homepage.offsetWidth;
-+    gameContainer.style.display = "none";
-+    gameContainer.classList.remove("blur-background");
+   function increaseSpeed() {
+     currentGameSpeed *= SPEED_INCREASE_FACTOR;
+-    currentGameSpeed = Math.max(currentGameSpeed, 250);
+-    clearInterval(gameLoop);
+-    gameLoop = setInterval(updateGame, currentGameSpeed);
++    currentGameSpeed = Math.max(currentGameSpeed, 150);
++    console.log("Game speed increased to:", currentGameSpeed);
+   }
  
--      // Fade in homepage
--      homepage.style.transition = "opacity 0.5s ease";
--      homepage.style.opacity = "1";
-+    homepage.style.display = "flex";
-+    menuScreen.style.display = "block";
-+    title.style.display = "block";
+   let isProcessingWords = false;
+@@ -1055,7 +1094,7 @@ document.addEventListener("DOMContentLoaded", () => {
+     gameContainer.classList.remove("blur-background");
  
--      updateUserInfo();
-+    updateUserInfo();
+     homepage.style.display = "flex";
+-    menuScreen.style.display = "block";
++    menuScreen.style.display = "flex";
+     title.style.display = "block";
  
--      // Reset game container styles for next game
--      gameContainer.style.transition = "";
--      gameContainer.style.opacity = "1";
--    }, 500); // This should match the transition duration
-+    gameContainer.style.opacity = "1";
+     updateUserInfo();
+@@ -1064,6 +1103,9 @@ document.addEventListener("DOMContentLoaded", () => {
    }
  
    async function endGame() {
-@@ -1047,9 +1147,9 @@ document.addEventListener("DOMContentLoaded", () => {
-     overlay.classList.add("word-description-overlay");
-     overlay.innerHTML = `
-       <div class="word-description-content">
-+        <span class="close-description">&times;</span>
-         <h3>${word}</h3>
-         <p>${description}</p>
--        <button class="close-description">Close</button>
-       </div>
-     `;
-     document.body.appendChild(overlay);
-@@ -1092,7 +1192,7 @@ document.addEventListener("DOMContentLoaded", () => {
++    if (gameEnded) return; // Add this line to prevent multiple calls
++    gameEnded = true; // Add this line to set a flag
++
+     clearInterval(gameLoop);
+     document.removeEventListener("keydown", handleKeyPress);
+     window.removeEventListener("resize", resizeBoard);
+@@ -1171,14 +1213,21 @@ document.addEventListener("DOMContentLoaded", () => {
+     modal.style.display = "flex";
+     modal.style.opacity = "1";
+ 
+-    updateFinalScore();
++    debouncedUpdateFinalScore();
+   }
+ 
++  let finalScoreUpdateInProgress = false;
++
+   async function updateFinalScore() {
+-    try {
+-      showModalLoading();
++    if (finalScoreUpdateInProgress) {
++      console.log("Final score update already in progress. Skipping.");
++      return;
++    }
++
++    finalScoreUpdateInProgress = true;
++    showModalLoading();
+ 
+-      // Perform dry run to get user data including current max score
++    try {
+       const dryRunResult = await dryRunGetUserData(
+         walletConnection,
+         walletConnection.walletAddress,
+@@ -1191,7 +1240,7 @@ document.addEventListener("DOMContentLoaded", () => {
          currentMaxScore = userData.maxScore || 0;
        }
  
--      await updatePlayCount(walletConnection, walletConnection.walletAddress);
-+      // await updatePlayCount(walletConnection, walletConnection.walletAddress);
+-      // await updatePlayCount(walletConnection, walletConnection.walletAddress);
++      await updatePlayCount(walletConnection, walletConnection.walletAddress);
        updateUserInfo();
  
        if (score > currentMaxScore) {
-@@ -1142,6 +1242,19 @@ document.addEventListener("DOMContentLoaded", () => {
-     console.log("Clearing game state");
+@@ -1219,8 +1268,12 @@ document.addEventListener("DOMContentLoaded", () => {
+     } catch (error) {
+       console.error("Error checking/updating max score:", error);
+       highScoreMessageElement.textContent = "Failed to check high score.";
++      finalScoreElement.textContent = `Score: ${score}`;
++      document.getElementById("previousHighScore").textContent =
++        "Error occurred while updating score";
+     } finally {
+       hideModalLoading();
++      finalScoreUpdateInProgress = false;
+     }
    }
  
-+  async function downloadKeyfile() {
-+    if (walletConnection.authMethod === "QuickWallet") {
-+      const jwk = await getKeyfile();
-+      const content = JSON.stringify(jwk);
-+      const blob = new Blob([content], { type: "application/json" });
-+      const blobUrl = URL.createObjectURL(blob);
-+      console.log(blobUrl);
+@@ -1267,16 +1320,16 @@ document.addEventListener("DOMContentLoaded", () => {
+         );
+         backToMenuFromModal();
+       } else {
++        playCountUpdated = false;
+         isFirstLetter = true;
++        gameEnded = false;
 +
-+      // Download the wallet
-+      // downloadFile(blobUrl, "arweave-keyfile.json");
-+    }
+         hideModal();
+         document
+           .getElementById("gameContainer")
+           .classList.remove("blur-background");
+         clearGameState();
+ 
+-        // Clear any existing game loop
+-        clearInterval(gameLoop);
+-
+         // Reset the board
+         initializeBoard();
+ 
+@@ -1286,8 +1339,12 @@ document.addEventListener("DOMContentLoaded", () => {
+         // Spawn a new letter
+         spawnLetter();
+ 
+-        // Start a new game loop
+-        gameLoop = setInterval(updateGame, currentGameSpeed);
++        // Reset game variables
++        currentGameSpeed = INITIAL_GAME_SPEED;
++        lettersPlaced = 0;
++        lastUpdateTime = 0;
++
++        requestAnimationFrame(gameLoop);
+ 
+         // Re-add event listeners
+         document.addEventListener("keydown", handleKeyPress);
+@@ -1304,4 +1361,17 @@ document.addEventListener("DOMContentLoaded", () => {
+       alert("An error occurred. Please try again.");
+     }
+   }
++  function debounce(func, wait) {
++    let timeout;
++    return function executedFunction(...args) {
++      const later = () => {
++        clearTimeout(timeout);
++        func(...args);
++      };
++      clearTimeout(timeout);
++      timeout = setTimeout(later, wait);
++    };
 +  }
 +
-   async function resetGame() {
-     try {
-       const { playCount, canPlay } = await getPlayCount(
++  const debouncedUpdateFinalScore = debounce(updateFinalScore, 1000);
+ });
 diff --git a/src/styles.css b/src/styles.css
-index d82aad6..9eb8838 100644
+index 9eb8838..80f74bc 100644
 --- a/src/styles.css
 +++ b/src/styles.css
-@@ -19,7 +19,7 @@
- /* Global Styles */
- html,
- body {
--    height: 100%;
-+    height: 100dvh;
-     margin: 0;
-     padding: 0;
-     overflow: hidden;
-@@ -60,6 +60,72 @@ input {
-     font-size: 18px;
+@@ -371,7 +371,6 @@ arweave-wallet-connection::part(button):active {
+ 
+ #homepage h1 {
+     color: #ffffff;
+-    margin-bottom: 30px;
+     font-size: 4vh;
  }
  
-+#helpIcon {
-+    position: fixed;
-+    top: 10px;
-+    right: 10px;
-+    width: 30px;
-+    height: 30px;
-+    color: white;
-+    border-radius: 50%;
-+    display: flex;
-+    justify-content: center;
-+    align-items: center;
-+    font-weight: bold;
-+    cursor: pointer;
-+    z-index: 1000;
-+}
-+
-+#helpModal .modal-content {
-+    background-color: #1f2225;
-+    padding: 20px;
-+    border-radius: 10px;
-+    text-align: center;
-+}
-+
-+#helpModal h2 {
-+    color: #ffffff;
-+    margin-bottom: 20px;
-+}
-+
-+#helpIcon {
-+    position: fixed;
-+    top: 10px;
-+    right: 10px;
-+    width: 30px;
-+    height: 30px;
-+    background-color: #0b6e4f;
-+    color: white;
-+    border-radius: 50%;
-+    display: flex;
-+    justify-content: center;
-+    align-items: center;
-+    font-weight: bold;
-+    cursor: pointer;
-+    z-index: 1000;
-+}
-+
-+#helpModal .modal-content {
-+    background-color: #1f2225;
-+    padding: 20px;
-+    border-radius: 10px;
-+    text-align: center;
-+}
-+
-+#helpModal h2 {
-+    color: #ffffff;
-+    margin-bottom: 20px;
-+}
-+
-+#helpModal p {
-+    color: #ffffff;
-+    margin-bottom: 20px;
-+}
-+
-+#downloadKeyfile {
-+    margin: 0 auto;
-+}
-+
- /* Score Display */
- #score {
-     position: fixed;
-@@ -81,8 +147,8 @@ input {
-     flex-direction: column;
-     align-items: center;
-     justify-content: space-between;
--    width: 100vw;
--    height: 100vh;
-+    width: 100%;
-+    height: 100%;
-     max-width: 600px;
-     margin: 0 auto;
-     padding: 10px;
-@@ -90,12 +156,10 @@ input {
-     overflow: hidden;
- }
- 
--#gameContainer,
-+/* #gameContainer,
- #homepage {
--    transition: opacity 0.5s ease;
--}
--
--/* Game Board */
-+    transition: opacity 0.1s ease;
-+} */
- 
- /* Game Board */
- #game-board {
-@@ -298,7 +362,7 @@ arweave-wallet-connection::part(button):active {
- #homepage {
-     display: flex;
-     flex-direction: column;
--    justify-content: center;
-+    justify-content: flex-end;
-     align-items: center;
-     height: 100vh;
-     width: 100%;
-@@ -317,6 +381,15 @@ arweave-wallet-connection::part(button):active {
-     text-align: center;
- }
- 
-+/* Add this new style for a potential image placeholder */
-+.image-placeholder {
-+    width: 100%;
-+    height: 30vh;
-+    /* Adjust as needed */
-+    margin-bottom: auto;
-+    /* This pushes the content below it towards the bottom */
-+}
-+
- #connectWalletScreen,
+@@ -394,6 +393,9 @@ arweave-wallet-connection::part(button):active {
  #usernameScreen,
  #menuScreen,
-@@ -491,22 +564,32 @@ pixelated-button[disabled] {
- .word-description-content p {
-     font-size: 20px;
-     line-height: 1.5;
-+    margin: 1rem 0 0 0;
-+}
-+
-+.word-description-content {
-+    position: relative;
-+    background-color: #1f2225;
-+    padding: 20px;
-+    border-radius: 10px;
-+    max-width: 80%;
-+    max-height: 80%;
-+    overflow-y: auto;
-+    color: #ffffff;
+ #leaderboardScreen {
++    flex-direction: column;
++    justify-content: center;
++    align-items: center;
+     width: 80%;
+     max-width: 300px;
+ }
+@@ -456,12 +458,6 @@ pixelated-button[disabled] {
+     font-size: 16px;
  }
  
- .close-description {
--    background-color: #0b6e4f;
--    color: white;
--    border: none;
--    padding: 10px 20px;
--    font-size: 16px;
-+    position: absolute;
-+    top: 15px;
-+    right: 15px;
-+    font-size: 28px;
-+    font-weight: bold;
-+    color: #ffffff;
-     cursor: pointer;
--    margin-top: 15px;
--    height: 5vh;
+-#menuScreen pixelated-button,
+-.backToMenu pixelated-button {
+-    margin-bottom: 1.5rem;
 -    width: 100%;
+-}
+-
+ #previewWordsScreen {
+     display: flex;
+     flex-direction: column;
+@@ -493,7 +489,7 @@ pixelated-button[disabled] {
+     justify-content: center;
+     gap: 10px;
+     width: 100%;
+-    margin-top: 20px;
++    margin-top: auto;
+     padding: 0 20px;
+     box-sizing: border-box;
  }
- 
- .close-description:hover {
--    background-color: #0a5d42;
-+    color: #cccccc;
- }
- 
- .word-item {
-@@ -544,7 +627,6 @@ pixelated-button[disabled] {
- }
- 
- .leaderboard-item .place {
--    font-weight: bold;
-     margin-right: 5px;
-     min-width: 30px;
- }
-@@ -563,6 +645,11 @@ pixelated-button[disabled] {
-     min-width: 60px;
- }
- 
-+.users-placement {
-+    font-weight: bold;
-+    color: #ffb637;
-+}
-+
- .backToMenu {
-     margin: 20px auto;
- }
-@@ -684,7 +771,7 @@ h3 {
- 
- .modal {
-     opacity: 0;
--    transition: opacity 1s ease;
-+    transition: opacity cubic-bezier(0.23, 1, 0.32, 1) ease;
- }
- 
- #finalScore {
-@@ -723,7 +810,7 @@ h3 {
- .loading-indicator {
-     display: none;
-     position: fixed;
--    bottom: 20%;
-+    bottom: 40%;
-     left: 50%;
-     top: auto;
-     transform: translateX(-50%);
-@@ -855,7 +942,7 @@ h3 {
- 
-     #jackpot-words,
-     #regular-words {
--        gap: 12px;
-+        gap: 16px;
+@@ -989,6 +985,7 @@ h3 {
+         flex-direction: column;
+         align-items: center;
+         width: 100%;
++        margin: auto;
      }
  
-     #jackpot-words::before {
-@@ -873,6 +960,16 @@ h3 {
-         font-size: 16vw;
-     }
- 
-+    .game-title {
-+        font-size: 8vw;
-+        /* Adjust font size for mobile */
-+    }
-+
-+    .image-placeholder {
-+        height: 25vh;
-+        /* Adjust height for mobile if needed */
-+    }
-+
-     #leaderboardScreen,
-     #previewWordsScreen {
-         height: 80vh;
-@@ -942,7 +1039,14 @@ h3 {
-     }
- 
-     .word-description-content {
--        font-size: 20px;
--        max-width: 80%;
-+        max-width: 90%;
-+        margin: 5%;
-+        padding: 15px;
-+    }
-+
-+    .close-description {
-+        font-size: 24px;
-+        top: 12px;
-+        right: 12px;
-     }
- }
+     #usernameField,

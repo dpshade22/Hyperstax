@@ -40,7 +40,16 @@ export async function getPlayCount(walletConnection, walletAddress) {
   }
 }
 
+let playCountUpdateInProgress = false;
+
 export async function updatePlayCount(walletConnection, walletAddress) {
+  if (playCountUpdateInProgress) {
+    console.log("Play count update already in progress. Skipping.");
+    return;
+  }
+
+  playCountUpdateInProgress = true;
+
   try {
     console.log("Updating play count for wallet:", walletAddress);
 
@@ -64,6 +73,8 @@ export async function updatePlayCount(walletConnection, walletAddress) {
   } catch (error) {
     console.error("Error in updatePlayCount:", error);
     throw new Error(`Failed to update play count: ${error.message}`);
+  } finally {
+    playCountUpdateInProgress = false;
   }
 }
 

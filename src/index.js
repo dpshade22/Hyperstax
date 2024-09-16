@@ -105,11 +105,24 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function showModalLoading() {
+    const modalLoadingIndicator = document.getElementById(
+      "modalLoadingIndicator",
+    );
+    const modalContent = document.querySelector(".modal-content");
     modalLoadingIndicator.style.display = "flex";
     modalContent.classList.add("loading");
+
+    // Set a timeout to hide the loading indicator after 30 seconds
+    setTimeout(() => {
+      hideModalLoading();
+    }, 30000);
   }
 
   function hideModalLoading() {
+    const modalLoadingIndicator = document.getElementById(
+      "modalLoadingIndicator",
+    );
+    const modalContent = document.querySelector(".modal-content");
     modalLoadingIndicator.style.display = "none";
     modalContent.classList.remove("loading");
   }
@@ -146,7 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const LETTERS = "AAEIOOPRSWVLMMCUU$";
   const INITIAL_GAME_SPEED = 700;
   const SPEED_INCREASE_FACTOR = 0.85;
-  const LETTERS_PER_SPEED_INCREASE = 3;
+  const LETTERS_PER_SPEED_INCREASE = 4;
 
   // Game state variables
   let currentGameSpeed = INITIAL_GAME_SPEED;
@@ -155,13 +168,14 @@ document.addEventListener("DOMContentLoaded", () => {
   let score = 0;
   let currentLetter = "";
   let currentPosition = { x: 0, y: 0 };
-  let gameLoop;
   let currentUsername;
   let wordsToProcess;
   let isFirstLetter = true;
   let hasSeenPreviewWords = false;
   let userHasBazarProfile = false;
   let processingColumns = new Set();
+  let playCountUpdated = false;
+  let gameEnded = false;
 
   const WORDS = [
     "ARWEAVE",
@@ -512,7 +526,13 @@ document.addEventListener("DOMContentLoaded", () => {
     previewWordsScreen.style.display = "none";
 
     if (walletConnection.walletAddress && currentUsername) {
+      gameEnded = false;
       isFirstLetter = true;
+      currentGameSpeed = INITIAL_GAME_SPEED;
+      lettersPlaced = 0;
+      lastUpdateTime = 0;
+      gameLoopId = requestAnimationFrame(gameLoop);
+
       homepage.style.display = "none";
       gameContainer.style.display = "flex";
       clearGameState();
@@ -521,9 +541,7 @@ document.addEventListener("DOMContentLoaded", () => {
       drawBoard();
       spawnLetter();
       displayWordList();
-      currentGameSpeed = INITIAL_GAME_SPEED;
-      lettersPlaced = 0;
-      gameLoop = setInterval(updateGame, currentGameSpeed);
+      requestAnimationFrame(gameLoop);
       document.addEventListener("keydown", handleKeyPress);
       window.addEventListener("resize", resizeBoard);
     } else {
@@ -615,10 +633,11 @@ document.addEventListener("DOMContentLoaded", () => {
               : `<span class="wallet-suffix">#${entry.walletAddress.slice(-12)}</span>`;
 
           const item = document.createElement("div");
-          item.className = `leaderboard-item ${walletConnection.walletAddress === entry.walletAddress
-            ? "users-placement"
-            : ""
-            }`;
+          item.className = `leaderboard-item ${
+            walletConnection.walletAddress === entry.walletAddress
+              ? "users-placement"
+              : ""
+          }`;
           item.innerHTML = `
             <span class="place">#${index + 1}</span>
             <span class="username">${displayName}</span>
@@ -693,7 +712,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const availableWidth = container.clientWidth - 20;
 
     const aspectRatio = BOARD_WIDTH / BOARD_HEIGHT;
-    let boardWidth = availableWidth - 20;
+    let boardWidth = availableWidth;
     let boardHeight = boardWidth / aspectRatio;
 
     if (boardHeight > availableHeight) {
@@ -708,22 +727,37 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function drawBoard() {
+    // Ensure the game board has the correct number of cells
+    while (gameBoard.children.length < BOARD_WIDTH * BOARD_HEIGHT) {
+      const cell = document.createElement("div");
+      cell.classList.add("cell");
+      gameBoard.appendChild(cell);
+    }
+
     for (let y = 0; y < BOARD_HEIGHT; y++) {
       for (let x = 0; x < BOARD_WIDTH; x++) {
         const index = y * BOARD_WIDTH + x;
         let cell = gameBoard.children[index];
-        if (!cell) {
-          cell = document.createElement("div");
-          cell.classList.add("cell");
-          gameBoard.appendChild(cell);
+        const currentLetter = board[y][x].letter || "";
+        if (cell.textContent !== currentLetter) {
+          cell.textContent = currentLetter;
         }
-        cell.textContent = board[y][x].letter || " ";
       }
     }
-    if (currentLetter && currentPosition.y >= 0) {
-      const currentCell =
-        gameBoard.children[currentPosition.y * BOARD_WIDTH + currentPosition.x];
-      currentCell.textContent = currentLetter;
+
+    if (
+      currentLetter &&
+      currentPosition.y >= 0 &&
+      currentPosition.y < BOARD_HEIGHT &&
+      currentPosition.x >= 0 &&
+      currentPosition.x < BOARD_WIDTH
+    ) {
+      const currentCellIndex =
+        currentPosition.y * BOARD_WIDTH + currentPosition.x;
+      const currentCell = gameBoard.children[currentCellIndex];
+      if (currentCell && currentCell.textContent !== currentLetter) {
+        currentCell.textContent = currentLetter;
+      }
     }
   }
 
@@ -742,25 +776,38 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function updateGame() {
-    if (canMoveTo(currentPosition.x, currentPosition.y + 1)) {
-      currentPosition.y++;
-      if (isFirstLetter) {
-        playSound("dropSound");
-        isFirstLetter = false;
-      }
-    } else {
-      if (currentPosition.y >= 0) {
-        placeLetter();
-        if (!isProcessingWords) {
-          let match = checkWords();
-          if (hasHitFloor(currentPosition.x, currentPosition.y) && !match)
-            playSound("dropSound");
+  let lastUpdateTime = 0;
+  let gameLoopId;
+
+  function gameLoop(currentTime) {
+    if (gameEnded) return;
+
+    if (!lastUpdateTime) lastUpdateTime = currentTime;
+    const deltaTime = currentTime - lastUpdateTime;
+
+    if (deltaTime >= currentGameSpeed) {
+      if (canMoveTo(currentPosition.x, currentPosition.y + 1)) {
+        currentPosition.y++;
+        if (isFirstLetter) {
+          playSound("dropSound");
+          isFirstLetter = false;
         }
+      } else {
+        if (currentPosition.y >= 0) {
+          placeLetter();
+          if (!isProcessingWords) {
+            let match = checkWords();
+            if (hasHitFloor(currentPosition.x, currentPosition.y) && !match)
+              playSound("dropSound");
+          }
+        }
+        spawnLetter();
       }
-      spawnLetter();
+      drawBoard();
+      lastUpdateTime = currentTime;
     }
-    drawBoard();
+
+    gameLoopId = requestAnimationFrame(gameLoop);
   }
 
   function hasHitFloor(x, y) {
@@ -803,15 +850,13 @@ document.addEventListener("DOMContentLoaded", () => {
         "Attempted to place letter outside board boundaries:",
         currentPosition,
       );
-      // Optionally, you might want to adjust the current position or take other actions
     }
   }
 
   function increaseSpeed() {
     currentGameSpeed *= SPEED_INCREASE_FACTOR;
-    currentGameSpeed = Math.max(currentGameSpeed, 250);
-    clearInterval(gameLoop);
-    gameLoop = setInterval(updateGame, currentGameSpeed);
+    currentGameSpeed = Math.max(currentGameSpeed, 150);
+    console.log("Game speed increased to:", currentGameSpeed);
   }
 
   let isProcessingWords = false;
@@ -1054,7 +1099,7 @@ document.addEventListener("DOMContentLoaded", () => {
     gameContainer.style.display = "none";
     gameContainer.classList.remove("blur-background");
 
-    homepage.style.display = "flex";
+    homepage.style.display = "block";
     menuScreen.style.display = "block";
     title.style.display = "block";
 
@@ -1064,7 +1109,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function endGame() {
-    clearInterval(gameLoop);
+    if (gameEnded) return; // Prevent multiple calls
+    gameEnded = true;
+
+    cancelAnimationFrame(gameLoopId); // Cancel the animation frame instead of clearing an interval
     document.removeEventListener("keydown", handleKeyPress);
     window.removeEventListener("resize", resizeBoard);
 
@@ -1171,14 +1219,21 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.style.display = "flex";
     modal.style.opacity = "1";
 
-    updateFinalScore();
+    debouncedUpdateFinalScore();
   }
 
-  async function updateFinalScore() {
-    try {
-      showModalLoading();
+  let finalScoreUpdateInProgress = false;
 
-      // Perform dry run to get user data including current max score
+  async function updateFinalScore() {
+    if (finalScoreUpdateInProgress) {
+      console.log("Final score update already in progress. Skipping.");
+      return;
+    }
+
+    finalScoreUpdateInProgress = true;
+    showModalLoading();
+
+    try {
       const dryRunResult = await dryRunGetUserData(
         walletConnection,
         walletConnection.walletAddress,
@@ -1191,7 +1246,7 @@ document.addEventListener("DOMContentLoaded", () => {
         currentMaxScore = userData.maxScore || 0;
       }
 
-      // await updatePlayCount(walletConnection, walletConnection.walletAddress);
+      await updatePlayCount(walletConnection, walletConnection.walletAddress);
       updateUserInfo();
 
       if (score > currentMaxScore) {
@@ -1219,8 +1274,12 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       console.error("Error checking/updating max score:", error);
       highScoreMessageElement.textContent = "Failed to check high score.";
+      finalScoreElement.textContent = `Score: ${score}`;
+      document.getElementById("previousHighScore").textContent =
+        "Error occurred while updating score";
     } finally {
       hideModalLoading();
+      finalScoreUpdateInProgress = false;
     }
   }
 
@@ -1267,15 +1326,15 @@ document.addEventListener("DOMContentLoaded", () => {
         );
         backToMenuFromModal();
       } else {
+        playCountUpdated = false;
+        gameEnded = false;
         isFirstLetter = true;
+
         hideModal();
         document
           .getElementById("gameContainer")
           .classList.remove("blur-background");
         clearGameState();
-
-        // Clear any existing game loop
-        clearInterval(gameLoop);
 
         // Reset the board
         initializeBoard();
@@ -1286,8 +1345,12 @@ document.addEventListener("DOMContentLoaded", () => {
         // Spawn a new letter
         spawnLetter();
 
-        // Start a new game loop
-        gameLoop = setInterval(updateGame, currentGameSpeed);
+        // Reset game variables
+        currentGameSpeed = INITIAL_GAME_SPEED;
+        lettersPlaced = 0;
+        lastUpdateTime = 0;
+
+        requestAnimationFrame(gameLoop);
 
         // Re-add event listeners
         document.addEventListener("keydown", handleKeyPress);
@@ -1304,4 +1367,17 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("An error occurred. Please try again.");
     }
   }
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  const debouncedUpdateFinalScore = debounce(updateFinalScore, 1000);
 });
