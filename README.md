@@ -38,7 +38,7 @@ Alternatively, you can use Node.js and npm, but you may need to modify some scri
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/Hyperstax.git
+   git clone https://github.com/dpshade22/Hyperstax.git
    ```
 2. Navigate to the project directory:
    ```
