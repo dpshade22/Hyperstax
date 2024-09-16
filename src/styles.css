@@ -80,6 +80,7 @@ input {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: space-between;
     width: 100vw;
     height: 100vh;
     max-width: 600px;
@@ -95,16 +96,20 @@ input {
 }
 
 /* Game Board */
+
+/* Game Board */
 #game-board {
     display: grid;
     gap: 3px;
     width: 100%;
-    flex-grow: 1;
+    aspect-ratio: 7/10;
+    max-height: calc(100vh - 200px);
     background-color: #373e44;
     border: 5px solid #373e44;
     padding: 3px;
     image-rendering: pixelated;
     overflow: hidden;
+    margin: 10px 0;
 }
 
 /* Cell Styles */
@@ -152,23 +157,22 @@ input {
 #controls img {
     width: 33vw;
     height: auto;
-    margin: 0 1vw;
     cursor: pointer;
     transition: transform 0.1s ease;
-    object-fit: none;
-    object-position: center;
+    object-fit: cover;
 }
 
 #leftBtn {
-    object-position: -35px center;
+    object-position: 25% center;
 }
 
 #downBtn {
-    object-position: -35px center;
+    object-position: center;
+    margin-left: -4px;
 }
 
 #rightBtn {
-    object-position: -35px center;
+    object-position: 75% center;
 }
 
 #controls img:active {
@@ -181,6 +185,7 @@ input {
     flex-direction: column;
     align-items: center;
     gap: 5px;
+    padding: 0 10px;
     margin-bottom: 5px;
     font-size: 1em;
     position: relative;
@@ -192,12 +197,12 @@ input {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 2px;
+    gap: 12px;
     width: 100%;
 }
 
 #jackpot-words {
-    margin-top: 2rem;
+    margin-top: 3.5rem;
     position: relative;
 }
 
@@ -313,23 +318,20 @@ arweave-wallet-connection::part(button):active {
 }
 
 #connectWalletScreen,
-#usernameScreen,
 #menuScreen,
 #leaderboardScreen {
-    width: 80%;
-    max-width: 300px;
-}
-
-#usernameScreen {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
+    height: 100vh;
     width: 100%;
-    max-width: 300px;
-    margin: 0 auto;
+    text-align: center;
+    width: 80%;
 }
 
-#usernameInput {
+#usernameInput,
+#emailInput {
     width: 100%;
     height: 36px;
     padding: 12px;
@@ -337,6 +339,38 @@ arweave-wallet-connection::part(button):active {
     font-size: 16px;
     border: 2px solid #4a4a4a;
     box-sizing: border-box;
+    background-color: #e4e4e4;
+    color: #232323;
+    font-family:
+        "PPNeueBit",
+        -apple-system,
+        BlinkMacSystemFont,
+        Segoe UI,
+        Roboto,
+        Oxygen,
+        Ubuntu,
+        Cantarell,
+        Fira Sans,
+        Droid Sans,
+        Helvetica Neue,
+        sans-serif;
+    font-weight: 700;
+    transition: border-color 0.3s ease;
+}
+
+#usernameInput::placeholder,
+#emailInput::placeholder {
+    color: #888;
+}
+
+#usernameInput.invalid,
+#emailInput.invalid {
+    border-color: #ff0000;
+}
+
+pixelated-button[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 #submitUsername {
@@ -345,10 +379,143 @@ arweave-wallet-connection::part(button):active {
     font-size: 16px;
 }
 
-#menuScreen button,
-#leaderboardScreen button {
-    margin-bottom: 1.5rem;
+#previewWordsScreen {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#previewWordList {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+#previewWordList .word-item {
+    font-size: 5vw;
+    padding: 10px 20px;
+}
+
+#previewWordList #jackpot-words::before {
+    font-size: 4vw;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
     width: 100%;
+    margin-top: 20px;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+.button-container pixelated-button {
+    margin: 20px auto;
+    width: 80%;
+    max-width: 300px;
+}
+
+.game-description {
+    font-size: 18px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #ffffff;
+    max-width: 80%;
+    line-height: 1.4;
+}
+
+#preview-jackpot-words-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.jackpot-multiplier {
+    font-size: 6vw;
+    color: #ffa500;
+    margin-bottom: 12px;
+}
+
+#preview-jackpot-words {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+}
+
+.word-description-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.word-description-content {
+    background-color: #1f2225;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 40%;
+    max-height: 80%;
+    overflow-y: auto;
+    color: #ffffff;
+}
+
+.word-description-content h3 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.word-description-content p {
+    font-size: 20px;
+    line-height: 1.5;
+    margin: 1rem 0 0 0;
+}
+
+.word-description-content {
+    position: relative;
+    background-color: #1f2225;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 80%;
+    max-height: 80%;
+    overflow-y: auto;
+    color: #ffffff;
+}
+
+.close-description {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.close-description:hover {
+    color: #cccccc;
+}
+
+.word-item {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.word-item:hover {
+    transform: scale(1.1);
 }
 
 /* Leaderboard */
@@ -356,16 +523,14 @@ arweave-wallet-connection::part(button):active {
     display: flex;
     flex-direction: column;
     height: 90vh;
-    width: 100vw;
     max-width: 600px;
-    max-width: none;
     padding-top: 20px;
 }
 
 #leaderboardList {
     flex-grow: 1;
     overflow-y: auto;
-    max-width: none;
+    width: 80vw;
     margin: 0;
     padding: 0 20px;
 }
@@ -379,7 +544,6 @@ arweave-wallet-connection::part(button):active {
 }
 
 .leaderboard-item .place {
-    font-weight: bold;
     margin-right: 5px;
     min-width: 30px;
 }
@@ -398,41 +562,16 @@ arweave-wallet-connection::part(button):active {
     min-width: 60px;
 }
 
-#backToMenu {
+.users-placement {
+    font-weight: bold;
+    color: #ffb637;
+}
+
+.backToMenu {
     margin: 20px auto;
-    width: 80%;
-    max-width: 300px;
 }
 
 /* Modal */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow-x: hidden;
-    overflow-y: auto;
-    background-color: rgba(0, 0, 0, 0.9);
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-content {
-    font-size: 24px;
-    text-align: center;
-    background-color: #1f2225;
-    width: 100%;
-    height: 100%;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
 h3 {
     font-family:
         Plus Jakarta Sans,
@@ -506,7 +645,6 @@ h3 {
     justify-content: center;
     align-items: center;
     opacity: 0;
-    transition: opacity 1s ease;
 }
 
 .game-over-image {
@@ -519,11 +657,6 @@ h3 {
     transition: filter 0.5s ease;
 }
 
-.modal {
-    opacity: 0;
-    transition: opacity 1s ease;
-}
-
 #finalScore {
     font-size: 32px;
     margin: 1rem 0;
@@ -531,7 +664,7 @@ h3 {
 
 #finalScoreDisplay {
     font-family: "PPNeueBit 2", sans-serif;
-    transition: opacity 1s ease;
+    transition: opacity 0.5s ease;
 }
 
 #previousHighScore {
@@ -546,11 +679,23 @@ h3 {
 }
 
 /* Loading Indicator */
+#connectingMessage {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: #ffffff;
+    text-align: center;
+    z-index: 1000;
+}
+
 .loading-indicator {
     display: none;
     position: fixed;
     bottom: 20%;
     left: 50%;
+    top: auto;
     transform: translateX(-50%);
     z-index: 9999;
 }
@@ -583,28 +728,46 @@ h3 {
     }
 }
 
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: rgba(0, 0, 0, 0.9);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    font-size: 24px;
+    text-align: center;
+    background-color: #1f2225;
+    width: 100%;
+    height: 100%;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.3s ease;
+}
+
 #modalLoadingIndicator {
     position: absolute;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    border-radius: 10px;
     width: 100%;
     height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 10px;
-}
-
-.modal-content h2 {
-    font-size: 48px;
-    margin-bottom: 20px;
-}
-
-.modal-content p {
-    font-size: 24px;
-    margin-bottom: 15px;
+    z-index: 10;
 }
 
 .modal-content > *:not(#modalLoadingIndicator) {
@@ -612,7 +775,7 @@ h3 {
 }
 
 .modal-content.loading > *:not(#modalLoadingIndicator) {
-    opacity: 0.3;
+    opacity: 0;
 }
 
 .wallet-suffix {
@@ -627,10 +790,12 @@ h3 {
         height: 90vh;
         display: flex;
         flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
 
     #score {
-        font-size: 14vw;
+        font-size: 18vw;
         top: 5px;
         right: 5px;
     }
@@ -641,18 +806,13 @@ h3 {
         flex-shrink: 0;
     }
 
-    #jackpot-words,
-    #regular-words {
-        gap: 2px;
-    }
-
     .word-item {
         font-size: 0.8em;
         padding: 1px 3px;
     }
 
     #game-board {
-        height: 0;
+        max-height: calc(100vh - 250px);
         flex-grow: 1;
         width: 100%;
     }
@@ -664,15 +824,14 @@ h3 {
     #controls {
         flex-direction: row;
         justify-content: space-between;
-        margin-top: 10px;
         padding-bottom: 10px;
         flex-shrink: 0;
     }
 
     #controls img {
-        width: 35vw;
-        height: auto;
-        max-width: 120px;
+        width: 33vw;
+        height: 13vh;
+        max-width: 140px;
     }
 
     /* Ensure buttons are always visible */
@@ -684,7 +843,7 @@ h3 {
 
     #jackpot-words,
     #regular-words {
-        gap: 2px;
+        gap: 12px;
     }
 
     #jackpot-words::before {
@@ -702,17 +861,76 @@ h3 {
         font-size: 16vw;
     }
 
-    #leaderboardScreen {
+    #leaderboardScreen,
+    #previewWordsScreen {
         height: 80vh;
     }
 
-    #usernameInput {
-        font-size: 14px;
-        padding: 10px;
+    #usernameInput,
+    #emailInput,
+    #submitSignup {
+        width: 90%;
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
     }
 
-    #submitUsername {
-        font-size: 14px;
-        padding: 10px;
+    #signupScreen {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    #usernameField,
+    #emailField,
+    #submitSignup {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    pixelated-input,
+    pixelated-button {
+        width: 90%;
+        max-width: 300px;
+    }
+
+    /* Center the submit button */
+    #submitSignup {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    /* Adjust the width of the pixelated-button inside submitSignup */
+    #submitSignup pixelated-button {
+        width: 100%;
+    }
+
+    #previewWordList #jackpot-words::before {
+        font-size: 6vw;
+    }
+
+    .button-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .button-container pixelated-button {
+        width: 100%;
+        margin: 0;
+        max-width: 300px;
+    }
+
+    .game-description {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+
+    .word-description-content {
+        font-size: 20px;
+        max-width: 80%;
     }
 }

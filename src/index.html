@@ -4,52 +4,92 @@
         <meta charset="UTF-8" />
         <meta
             name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
         />
-        <title>WordStack</title>
+        <title>Hyperstax</title>
         <link rel="stylesheet" href="styles.css" />
     </head>
 
     <body>
         <div id="userInfo" class="user-info" style="display: none"></div>
+        <div id="connectingMessage" style="display: none">
+            Connecting Wallet
+        </div>
         <div id="loadingIndicator" class="loading-indicator">
             <div class="pixel"></div>
             <div class="pixel"></div>
             <div class="pixel"></div>
         </div>
         <div id="homepage">
-            <h1 class="game-title">WordStack</h1>
             <div id="connectWalletScreen">
+                <h1 class="game-title">Hyperstax</h1>
+                <h2 class="game-subtitle"></h2>
                 <arweave-wallet-connection></arweave-wallet-connection>
             </div>
-            <div id="usernameScreen" style="display: none">
-                <input
-                    type="text"
-                    id="usernameInput"
-                    placeholder="Enter your username"
-                />
+            <div id="signupScreen" style="display: none">
+                <h1 id="signupTitle"></h1>
+                <p id="signupMessage"></p>
+                <div id="usernameField">
+                    <input
+                        type="text"
+                        id="usernameInput"
+                        placeholder="Enter your username"
+                    />
+                </div>
+                <div id="emailField">
+                    <input
+                        type="email"
+                        id="emailInput"
+                        placeholder="Enter your email"
+                    />
+                </div>
                 <pixelated-button
-                    id="submitUsername"
+                    id="submitSignup"
                     text="Submit"
                 ></pixelated-button>
+                <div style="margin: 3rem"></div>
             </div>
             <div id="menuScreen" style="display: none">
-                <pixelated-button
-                    id="letsPlay"
-                    text="Let's Play"
-                ></pixelated-button>
-                <div style="padding: 7px 0"></div>
-                <pixelated-button
-                    id="showLeaderboard"
-                    text="Leaderboard"
-                ></pixelated-button>
+                <h1 class="game-title">Hyperstax</h1>
+
+                <div class="button-container">
+                    <pixelated-button
+                        id="letsPlay"
+                        text="Let's Play"
+                    ></pixelated-button>
+                    <pixelated-button
+                        id="showLeaderboard"
+                        text="Leaderboard"
+                    ></pixelated-button>
+                </div>
+            </div>
+            <div id="previewWordsScreen" style="display: none">
+                <h1 class="game-title">Word Preview</h1>
+                <div id="previewWordList"></div>
+                <div class="button-container">
+                    <pixelated-button
+                        class="backToMenu"
+                        text="Back to Menu"
+                    ></pixelated-button>
+                    <pixelated-button
+                        id="startGameFromPreview"
+                        text="Let's Play"
+                    ></pixelated-button>
+                </div>
             </div>
             <div id="leaderboardScreen" style="display: none">
+                <h1 class="game-title">Leaderboard</h1>
                 <div id="leaderboardList"></div>
-                <pixelated-button
-                    id="backToMenu"
-                    text="Back to Menu"
-                ></pixelated-button>
+                <div class="button-container">
+                    <pixelated-button
+                        class="backToMenu"
+                        text="Back to Menu"
+                    ></pixelated-button>
+                    <!-- <pixelated-button
+                        id="startGameFromPreview"
+                        text="Let's Play"
+                    ></pixelated-button> -->
+                </div>
             </div>
         </div>
         <div id="gameContainer" style="display: none">

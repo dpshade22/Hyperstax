@@ -4,9 +4,13 @@ import { join, resolve } from "path";
 
 const rootDir = resolve(process.cwd());
 
-const buildProcess = spawn("npx", ["webpack", "--config", "webpack.config.mjs"], {
-  stdio: "inherit",
-});
+const buildProcess = spawn(
+  "npx",
+  ["webpack", "--config", "webpack.config.mjs"],
+  {
+    stdio: "inherit",
+  },
+);
 
 buildProcess.on("exit", (code) => {
   if (code === 0) {
@@ -59,6 +63,8 @@ function startServer() {
   console.log(`Watching for changes in: ${srcDir}`);
   watch(srcDir, { recursive: true }, (event, filename) => {
     console.log(`File ${filename} changed. Rebuilding...`);
-    spawn("npx", ["webpack", "--config", "webpack.config.mjs"], { stdio: "inherit" });
+    spawn("npx", ["webpack", "--config", "webpack.config.mjs"], {
+      stdio: "inherit",
+    });
   });
 }

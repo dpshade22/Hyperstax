@@ -1,6 +1,6 @@
-# WordStack
+# Hyperstax
 
-WordStack is an engaging word game inspired by classic falling block puzzles, with a unique twist focused on creating words. Built using HTML, CSS, and JavaScript, this game challenges players to form words from falling letters while managing increasing speeds and scoring points.
+Hyperstax is an engaging word game inspired by classic falling block puzzles, with a unique twist focused on creating words. Built using HTML, CSS, and JavaScript, this game challenges players to form words from falling letters while managing increasing speeds and scoring points.
 
 ## Features
 
@@ -30,11 +30,11 @@ CU, SU, MU, ARWEAVE, AO, $AR, AI, PARALLEL, PERMA
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/WordStack.git
+   git clone https://github.com/yourusername/Hyperstax.git
    ```
 2. Navigate to the project directory:
    ```
-   cd WordStack
+   cd Hyperstax
    ```
 3. Open `src/index.html` in a web browser to play the game.
 
