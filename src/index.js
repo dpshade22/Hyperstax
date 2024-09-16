@@ -125,6 +125,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalContent = document.querySelector(".modal-content");
     modalLoadingIndicator.style.display = "none";
     modalContent.classList.remove("loading");
+
+    // Fade in the content
+    setTimeout(() => {
+      modalContent.style.opacity = "1";
+    }, 50);
   }
 
   function isValidEmail(email) {
@@ -286,7 +291,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("Back to menu clicked");
       leaderboardScreen.style.display = "none";
       previewWordsScreen.style.display = "none";
-      menuScreen.style.display = "block";
+      menuScreen.style.display = "flex";
       const title = document.querySelector(".game-title");
       title.style.display = "block";
       return;
@@ -354,7 +359,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("Existing username found:", currentUsername);
         console.log("Arweave Hub associated email found");
 
-        menuScreen.style.display = "block";
+        menuScreen.style.display = "flex";
         updateUserInfo();
       } else if (!isAssociated && userData && usernameFound) {
         // User has username but no associated email
@@ -442,7 +447,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         document.getElementById("signupScreen").style.display = "none";
-        menuScreen.style.display = "block";
+        menuScreen.style.display = "flex";
         updateUserInfo();
       } catch (error) {
         console.error("Error during signup:", error);
@@ -466,7 +471,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("Back to menu clicked");
       leaderboardScreen.style.display = "none";
       previewWordsScreen.style.display = "none";
-      menuScreen.style.display = "block";
+      menuScreen.style.display = "flex";
       const title = document.querySelector(".game-title");
       title.style.display = "block";
       return;
@@ -495,7 +500,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("Back to menu clicked");
       leaderboardScreen.style.display = "none";
       previewWordsScreen.style.display = "none";
-      menuScreen.style.display = "block";
+      menuScreen.style.display = "flex";
       const title = document.querySelector(".game-title");
       title.style.display = "block";
     });
@@ -709,7 +714,7 @@ document.addEventListener("DOMContentLoaded", () => {
       controls.clientHeight -
       wordList.clientHeight -
       40;
-    const availableWidth = container.clientWidth - 20;
+    const availableWidth = container.clientWidth;
 
     const aspectRatio = BOARD_WIDTH / BOARD_HEIGHT;
     let boardWidth = availableWidth;
@@ -1099,8 +1104,8 @@ document.addEventListener("DOMContentLoaded", () => {
     gameContainer.style.display = "none";
     gameContainer.classList.remove("blur-background");
 
-    homepage.style.display = "block";
-    menuScreen.style.display = "block";
+    homepage.style.display = "flex";
+    menuScreen.style.display = "flex";
     title.style.display = "block";
 
     updateUserInfo();
@@ -1112,7 +1117,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (gameEnded) return; // Prevent multiple calls
     gameEnded = true;
 
-    cancelAnimationFrame(gameLoopId); // Cancel the animation frame instead of clearing an interval
+    cancelAnimationFrame(gameLoopId);
     document.removeEventListener("keydown", handleKeyPress);
     window.removeEventListener("resize", resizeBoard);
 
@@ -1216,8 +1221,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function showModal() {
     const modal = document.getElementById("gameOverModal");
+    const modalContent = modal.querySelector(".modal-content");
     modal.style.display = "flex";
     modal.style.opacity = "1";
+
+    // Hide all content except loading indicator
+    modalContent.classList.add("loading");
+
+    // Show loading indicator immediately
+    showModalLoading();
 
     debouncedUpdateFinalScore();
   }
